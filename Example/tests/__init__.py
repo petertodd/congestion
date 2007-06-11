@@ -18,6 +18,7 @@ import common
 DEBUG = False
 
 from main import *
+from meta import *
 
 class exampleTest(TestProgram):
     """A command-line program that runs a set of tests; this is primarily
