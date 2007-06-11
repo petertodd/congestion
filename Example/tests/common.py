@@ -77,7 +77,11 @@ def repr_dirtree(path):
     return frozenset(r)
 
 def check_dataset(name):
-    """Check that the working dataset is identical to a given dataset."""
-
+    """Check that the working dataset is identical to a given dataset.
+    
+    By identical we mean that every files contents are the same and the
+    directory structure is the same. Symlinks are considered to be different
+    than the files they point to.
+    """
 
     return repr_dirtree(dataset_path(name)) == repr_dirtree(tmpd)
