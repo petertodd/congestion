@@ -1,8 +1,8 @@
 # vim: tabstop=4 expandtab shiftwidth=4 fileencoding=utf8
-# ###BOILERPLATE###
+# ### BOILERPLATE ###
 # This file is released to the public domain.
 # - Peter Todd <pete@petertodd.org>
-# ###BOILERPLATE###
+# ### BOILERPLATE ###
 
 __version__ = "0.0"
 
