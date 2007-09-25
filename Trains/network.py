@@ -106,8 +106,6 @@ class Network:
         # a track
         for a in self.nodes:
             while True:
-                print "from the top"
-
                 # Pick a destination node, but not ourselves.
                 #
                 # Where's a do { } while(1) loop when you need one?
@@ -120,7 +118,6 @@ class Network:
 
                 for t in self.tracks:
                     if (Intersect((a.pos,b.pos),(t.a.pos,t.b.pos))):
-                        print "intersects"
                         break
                 else:
                     break
