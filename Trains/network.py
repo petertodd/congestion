@@ -105,7 +105,20 @@ class Network:
         # now for each node, interconnect it with some random other node to create
         # a track
         for a in self.nodes:
-            b = self.nodes[randrange(0,len(self.nodes))]
+            while True:
+                print "from the top"
+                b = self.nodes[randrange(0,len(self.nodes))]
+
+                # check for intersections with all current tracks
+                from intersect import Intersect 
+
+                for t in self.tracks:
+                    if (Intersect((a.pos,b.pos),(t.a.pos,t.b.pos))):
+                        print "intersects"
+                        break
+                else:
+                    break
+
             self.tracks.append(Track(a,b))
 
     def add_random_trains(self,n = 4):
