@@ -17,7 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ### BOILERPLATE ###
 
-from kjbuckets import kjGraph
+from random import random,randrange
+
+from train import Train
 
 class Node:
     """A single node within the train network."""
@@ -44,6 +46,9 @@ class Track:
     a = False
     b = False
 
+    # Length, pre-calculated
+    length = False
+
     # The trains occupying this track 
     present = []
 
@@ -51,6 +56,12 @@ class Track:
         self.a = a
         self.a.exits.append(self)
         self.b = b
+
+        from math import sqrt
+
+        dx = b.pos[0] - a.pos[0]
+        dy = b.pos[1] - a.pos[1]
+        self.length = sqrt((dx ** 2) + (dy ** 2))
 
 class Network:
     """The graph of the train network."""
@@ -63,16 +74,21 @@ class Network:
     width = False
     height = False
 
+    # Trains present in the system
+    trains = []
+
     def __init__(self,dims):
         self.width,self.height = dims
 
+    def do(self,delta_t):
+        for t in self.trains:
+            t.do(delta_t)
 
-    def add_random_tracks(self,n = 40):
-        """Add random tracks to the given network.
+    def add_random_tracks(self,n = 20):
+        """Add random tracks to the network.
            
            n - number of tracks to add
         """
-        from random import random,randrange
 
         # add a bunch of random nodes to start with
         for i in range(0,n * 2):
@@ -82,4 +98,11 @@ class Network:
         # a track
         for a in self.nodes:
             b = self.nodes[randrange(0,len(self.nodes))]
-            self.tracks += [Track(a,b)]
+            self.tracks.append(Track(a,b))
+
+    def add_random_trains(self,n = 4):
+        """Add random trains to the network."""
+
+        for i in range(0,n):
+            t = self.tracks[randrange(0,len(self.tracks))]
+            self.trains.append(Train(t))

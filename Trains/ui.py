@@ -21,6 +21,10 @@
 
 import pygame
 
+def ip(pos):
+    x,y = pos
+    return (int(x),int(y))
+
 class UserInterface:
     """The user interface."""
 
@@ -39,7 +43,25 @@ class UserInterface:
         # Display the network
         for track in self.network.tracks:
             for x,y in (track.a.pos,track.b.pos):
-                pygame.draw.circle(self.screen,(0,0,0),(x + 1,y + 1),2)
-            pygame.draw.line(self.screen,(0,0,0),track.a.pos,track.b.pos)
+                pygame.draw.circle(self.screen,(0,0,0),ip((x + 1,y + 1)),2)
+            pygame.draw.line(self.screen,(0,0,0),ip(track.a.pos),ip(track.b.pos))
+
+        # Draw the trains
+        for t in self.network.trains:
+            # Calculate what fraction of the total length the train has travelled.
+            f = t.travelled / t.occupying[0].length
+
+            # Determine where on the line segment to draw the dot.
+            a = t.occupying[0].a.pos
+            print str(t.occupying) + " " + str(a)
+            b = t.occupying[0].b.pos
+            dx = b[0] - a[0]
+            dy = b[1] - a[1]
+
+            x = int(a[0] + (dx * f))
+            print t
+            y = int(a[1] + (dy * f))
+
+            pygame.draw.circle(self.screen,(255,0,0),(x + 1,y + 1),2)
 
         pygame.display.flip()

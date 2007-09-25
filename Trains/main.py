@@ -45,12 +45,15 @@ def main(argv):
 
     network = network.Network((400,400))
     network.add_random_tracks()
+    network.add_random_trains()
 
     ui = ui.UserInterface(network,(400,400))
 
 
+    dt = 0.1
     while True:
+        network.do(dt)
         ui.do()
         
         import time
-        time.sleep(0.1)
+        time.sleep(dt)
