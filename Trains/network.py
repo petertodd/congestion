@@ -107,7 +107,13 @@ class Network:
         for a in self.nodes:
             while True:
                 print "from the top"
-                b = self.nodes[randrange(0,len(self.nodes))]
+
+                # Pick a destination node, but not ourselves.
+                #
+                # Where's a do { } while(1) loop when you need one?
+                b = a
+                while a == b:
+                    b = self.nodes[randrange(0,len(self.nodes))]
 
                 # check for intersections with all current tracks
                 from intersect import Intersect 
@@ -120,6 +126,7 @@ class Network:
                     break
 
             self.tracks.append(Track(a,b))
+            self.tracks.append(Track(b,a))
 
     def add_random_trains(self,n = 4):
         """Add random trains to the network."""
