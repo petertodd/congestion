@@ -20,7 +20,7 @@
 
 
 """
-Example software project in Python.
+Train network toy.
 """
 
 if __name__ == "__main__":
@@ -29,6 +29,6 @@ if __name__ == "__main__":
 
     import sys
 
-    from Example.main import main
+    from Trains.main import main
 
     main(sys.argv)

@@ -17,37 +17,29 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ### BOILERPLATE ###
 
-__version__ = "0.0"
+"""User interface."""
 
-def main(argv):
-    """
-    Script entry point.
+import pygame
 
-    Parse the command line options.
-    """
-    global __version__
+class UserInterface:
+    """The user interface."""
 
-    from optparse import OptionParser
+    screen = False
+    network = False
 
-    parser = OptionParser(usage="usage: %prog [OPTION...] command [ARG...]",version=__version__)
+    def __init__(self,network):
+        self.network = network
 
-    parser.set_defaults(message="Hello World!")
+        pygame.init()
+        self.screen = pygame.display.set_mode((640, 480))
 
-    parser.add_option("--message","-m",
-            action="store", type="string", dest="message",
-            help="set message to display, defaults to %default")
+    def do(self):
+        self.screen.fill((255,255,255))
 
-    (options, args) = parser.parse_args(argv)
+        # Display the network
+        for track in self.network.tracks:
+            for x,y in (track.a.pos,track.b.pos):
+                pygame.draw.circle(self.screen,(0,0,0),(x + 1,y + 1),2)
+            pygame.draw.line(self.screen,(0,0,0),track.a.pos,track.b.pos)
 
-
-    import ui
-    import network
-
-    network = network.Network()
-    ui = ui.UserInterface(network)
-
-    while True:
-        ui.do()
-        
-        import time
-        time.sleep(0.1)
+        pygame.display.flip()
