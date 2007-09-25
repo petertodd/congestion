@@ -43,8 +43,11 @@ def main(argv):
     import ui
     import network
 
-    network = network.Network()
-    ui = ui.UserInterface(network)
+    network = network.Network((400,400))
+    network.add_random_tracks()
+
+    ui = ui.UserInterface(network,(400,400))
+
 
     while True:
         ui.do()

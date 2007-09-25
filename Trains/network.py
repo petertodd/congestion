@@ -59,17 +59,27 @@ class Network:
     nodes = []
     tracks = []
 
-    def __init__(self):
-        n1 = Node((10,10))
-        n2 = Node((10,50))
-        n3 = Node((50,50))
-        n4 = Node((50,10))
-        a = Track(n1,n2)
-        b = Track(n2,n3)
-        c = Track(n3,n4)
-        d = Track(n4,n1)
+    # Width and height of the playfield
+    width = False
+    height = False
 
-        self.nodes = [n1,n2,n3,n4]
-        self.tracks = [a,b,c,d]
+    def __init__(self,dims):
+        self.width,self.height = dims
 
-        pass
+
+    def add_random_tracks(self,n = 40):
+        """Add random tracks to the given network.
+           
+           n - number of tracks to add
+        """
+        from random import random,randrange
+
+        # add a bunch of random nodes to start with
+        for i in range(0,n * 2):
+            self.nodes += [Node((random() * self.width,random() * self.height))]
+
+        # now for each node, interconnect it with some random other node to create
+        # a track
+        for a in self.nodes:
+            b = self.nodes[randrange(0,len(self.nodes))]
+            self.tracks += [Track(a,b)]

@@ -27,11 +27,11 @@ class UserInterface:
     screen = False
     network = False
 
-    def __init__(self,network):
+    def __init__(self,network,screen_size):
         self.network = network
 
         pygame.init()
-        self.screen = pygame.display.set_mode((640, 480))
+        self.screen = pygame.display.set_mode(screen_size)
 
     def do(self):
         self.screen.fill((255,255,255))
