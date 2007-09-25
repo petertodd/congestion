@@ -28,13 +28,15 @@ class Node:
     pos = (0,0)
 
     # The list of tracks going from this node
-    exits = []
+    exits = False 
 
     # The trains occupying this node
-    present = []
+    present = False
 
     def __init__(self,pos):
         self.pos = pos
+        self.exits = []
+        self.present = []
 
 class Track:
     """A single track within the train network.
@@ -50,7 +52,7 @@ class Track:
     length = False
 
     # The trains occupying this track 
-    present = []
+    present = False 
 
     def __init__(self,a,b):
         self.a = a
@@ -63,22 +65,28 @@ class Track:
         dy = b.pos[1] - a.pos[1]
         self.length = sqrt((dx ** 2) + (dy ** 2))
 
+        self.present = []
+
 class Network:
     """The graph of the train network."""
 
     # All the nodes and tracks in the system
-    nodes = []
-    tracks = []
+    nodes = False
+    tracks = False
 
     # Width and height of the playfield
     width = False
     height = False
 
     # Trains present in the system
-    trains = []
+    trains = False
 
     def __init__(self,dims):
         self.width,self.height = dims
+
+        self.nodes = []
+        self.tracks = []
+        self.trains = []
 
     def do(self,delta_t):
         for t in self.trains:
