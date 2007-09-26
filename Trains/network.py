@@ -31,14 +31,10 @@ class Node:
     # The list of tracks going from this node
     exits = False 
 
-    # The trains occupying this node
-    present = False
-
     def __init__(self,pos):
         x,y = pos
         self.pos = (int(x),int(y))
         self.exits = []
-        self.present = []
 
     def is_exit(self,b):
         """Returns true if node b is an exit."""
