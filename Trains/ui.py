@@ -44,7 +44,7 @@ class UserInterface:
         for track in self.network.tracks:
             for x,y in (track.a.pos,track.b.pos):
                 pygame.draw.circle(self.screen,(0,0,0),ip((x + 1,y + 1)),2)
-            pygame.draw.line(self.screen,(0,0,0),ip(track.a.pos),ip(track.b.pos))
+            pygame.draw.aaline(self.screen,(0,0,0),ip(track.a.pos),ip(track.b.pos))
 
         # Draw the trains
         for t in self.network.trains:
