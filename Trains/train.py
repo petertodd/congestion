@@ -35,8 +35,6 @@ class Train:
         self.speed = speed
         self.length = length
 
-        print 'init loc = ' + str(location)
-
         self.occupying = [location]
         location.present.append(self)
 

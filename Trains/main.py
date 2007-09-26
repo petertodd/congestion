@@ -42,9 +42,10 @@ def main(argv):
 
     import ui
     import network
+    import gen_network
 
     network = network.Network((400,400))
-    network.add_random_tracks()
+    gen_network.gen_random_network(network)
     network.add_random_trains()
 
     ui = ui.UserInterface(network,(400,400))

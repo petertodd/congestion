@@ -53,15 +53,21 @@ class UserInterface:
 
             # Determine where on the line segment to draw the dot.
             a = t.occupying[0].a.pos
-            print str(t.occupying) + " " + str(a)
             b = t.occupying[0].b.pos
             dx = b[0] - a[0]
             dy = b[1] - a[1]
 
             x = int(a[0] + (dx * f))
-            print t
             y = int(a[1] + (dy * f))
 
             pygame.draw.circle(self.screen,(255,0,0),(x + 1,y + 1),2)
 
+        # where the mouse is, equivilent to node id
+        pos = pygame.mouse.get_pos()
+        pygame.event.clear()
+
+        font = pygame.font.Font(None, 12)
+        text = font.render(str(pos), 1, (10, 10, 10))
+        self.screen.blit(text,(1,1,0,0))
+        
         pygame.display.flip()
