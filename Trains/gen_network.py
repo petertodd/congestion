@@ -47,32 +47,21 @@ def find_not_fully_reachable(net):
     all_nodes = Set(net.nodes)
     for n in net.nodes:
         reaches[n].add(n) # we can reach ourselves
-        print ' is now ' + str([str(j) for j in reaches[n]])
 
         # Breadth first search of all connected nodes.
         l = [t.b for t in n.exits]
-        print 'from ' + str(n) + ' exits ' + str([str(j) for j in l])
         for i in l:
-            print ' is now ' + str([str(j) for j in reaches[n]])
             # Already know we can reach this node?
-            print 'is ' + str(i) + ' in ' + str([str(j) for j in reaches[n]]),
             if not (i in reaches[n]):
-                print ' no'
                 # Reachability already calculated?
                 if reaches[i]:
-                    print ' reach already calculated -> ' + str([str(j) for j in reaches[i]])
                     # Yes, just add the sets of reachable nodes together.
                     reaches[n] |= reaches[i]
                 else:
-                    print ' adding ' +  str([str(t.b) for t in i.exits]) + ' to list'
                     # Mark that we can reach i and add it's exits the list of
                     # nodes to consider. 
                     reaches[n].add(i)
-                    print ' is now ' + str([str(j) for j in reaches[n]])
                     l += [t.b for t in i.exits]
-            else:
-                print ' yes'
-        print str(n) + ' reaches ' + str([str(j) for j in reaches[n]])
         j = all_nodes - reaches[n]
         if j:
             r.append((n,j))
@@ -127,35 +116,10 @@ def gen_random_network(net,n = 10,edge_buffer = 10):
                     )
                 )
 
-    # now for each node, interconnect it with some random other node to create
-    # a track
-    print "Created initial random set of nodes."
-    for a in net.nodes:
-        break # Disabled
-        while True:
-            # Pick a destination node, but not ourselves.
-            #
-            # Where's a do { } while(1) loop when you need one?
-            b = a
-            while a == b:
-                b = net.nodes[randrange(0,len(net.nodes))]
-
-            print 'Trying to add track between ' + str(a) + ' and ' + str(b) + '...',
-            if not net.add_track(a,b):
-                print 'Success!'
-                break
-            print 'failed.'
-
-    print 'Cleaning up non-reachables.'
     while True:
-        print 'Pass #' + str(i)
         not_reachable = find_not_fully_reachable(net)
         if not not_reachable:
             break
 
         for a,n in not_reachable:
-            print 'From ' + str(a) + ' can\'t reach ',
-            for x in n:
-                print str(x) + ',',
-            print
-            print add_track_to_closest_node(net,a,n)
+            add_track_to_closest_node(net,a,n)
