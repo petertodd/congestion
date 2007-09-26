@@ -18,8 +18,9 @@
 # ### BOILERPLATE ###
 
 from random import random,randrange
-
+from intersect import Intersect
 from train import Train
+from sets import Set
 
 class Node:
     """A single node within the train network."""
@@ -34,9 +35,20 @@ class Node:
     present = False
 
     def __init__(self,pos):
-        self.pos = pos
+        x,y = pos
+        self.pos = (int(x),int(y))
         self.exits = []
         self.present = []
+
+    def is_exit(self,b):
+        """Returns true if node b is an exit."""
+        x = Set()
+        for y in self.exits:
+            x.add(y.b)
+        return b in x
+
+    def __str__(self):
+        return str(self.pos)
 
 class Track:
     """A single track within the train network.
@@ -92,38 +104,20 @@ class Network:
         for t in self.trains:
             t.do(delta_t)
 
-    def add_random_tracks(self,n = 20):
-        """Add random tracks to the network.
-           
-           n - number of tracks to add
+    def add_track(self,a,b):
+        """Add a track between a and b.
+
+           If the new track would intersect other existing tracks, returns the
+           list of such tracks. Otherwise returns None and succeeds.
         """
 
-        # add a bunch of random nodes to start with
-        for i in range(0,n * 2):
-            self.nodes += [Node((random() * self.width,random() * self.height))]
-
-        # now for each node, interconnect it with some random other node to create
-        # a track
-        for a in self.nodes:
-            while True:
-                # Pick a destination node, but not ourselves.
-                #
-                # Where's a do { } while(1) loop when you need one?
-                b = a
-                while a == b:
-                    b = self.nodes[randrange(0,len(self.nodes))]
-
-                # check for intersections with all current tracks
-                from intersect import Intersect 
-
-                for t in self.tracks:
-                    if (Intersect((a.pos,b.pos),(t.a.pos,t.b.pos))):
-                        break
-                else:
-                    break
-
+        r = []
+        for t in self.tracks:
+            if Intersect((a.pos,b.pos),(t.a.pos,t.b.pos)):
+                r.append(t)
+        if not r:
             self.tracks.append(Track(a,b))
-            self.tracks.append(Track(b,a))
+        return r
 
     def add_random_trains(self,n = 4):
         """Add random trains to the network."""
