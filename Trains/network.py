@@ -62,6 +62,9 @@ class Track:
     # The trains occupying this track 
     present = False 
 
+    # Trains waiting to enter this track.
+    waiting_to_enter = None
+
     # Reported traffic
     traffic = False
 
@@ -77,14 +80,15 @@ class Track:
         self.length = int(sqrt((dx ** 2) + (dy ** 2)))
 
         self.present = []
+        self.waiting_to_enter = []
         self.traffic = 0
 
     def maintain(self,delta_t):
         """Maintain the track, statistics and the like."""
 
-        # Traffic reports get out of date if no-one is using the track.
-        if not self.present:
-            self.traffic = max(self.traffic - (self.length * delta_t),0)
+        # If no-one is waiting to enter, there isn't any traffic... 
+        if not self.waiting_to_enter:
+            self.traffic = 0  
 
 class Network:
     """The graph of the train network."""

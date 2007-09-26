@@ -53,7 +53,7 @@ class UserInterface:
                     c = (0,255,0)
                     size = 4
                 pygame.draw.circle(self.screen,c,ip((x + 1,y + 1)),size)
-            pygame.draw.aaline(self.screen,(0,0,0),ip(track.a.pos),ip(track.b.pos))
+            pygame.draw.aaline(self.screen,(0,0,min(track.traffic,255)),ip(track.a.pos),ip(track.b.pos))
 
         # Draw the trains
         for t in self.network.trains:

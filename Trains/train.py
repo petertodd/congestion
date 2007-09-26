@@ -58,7 +58,11 @@ class Train:
             if self.waiting_for:
                 # Waiting for track ahead to clear.
                 if not len(self.waiting_for.present) or \
-                    self.waiting_for.present[0].travelled > self.waiting_for.present[0].length + self.length:
+                    ((self.waiting_for.present[0].travelled > self.waiting_for.present[0].length + self.length) \
+                     and (self.waiting_for.waiting_to_enter[0] == self)):
+
+                    # aren't waiting anymore
+                    self.waiting_for.waiting_to_enter.remove(self)
 
                     # take us off the track we just left
                     exited_track = self.occupying.pop()
@@ -91,4 +95,5 @@ class Train:
 
                 # Pathfind to target.
                 self.waiting_for = pathfind(self.net,self.occupying[0].b,self.target)
+                self.waiting_for.waiting_to_enter.append(self)
                 self.waiting_for_time = 0
