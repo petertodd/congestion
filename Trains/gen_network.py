@@ -68,7 +68,7 @@ def find_not_fully_reachable(net):
 
     return r
 
-def add_track_to_closest_node(net,a,nodes):
+def add_track_to_closest_node(net,a,nodes,max_dist = 500):
     """Given node a finds the closest node from nodes and adds a track between them.
        
        If the closest would result in two tracks intersecting, tries the next
@@ -94,32 +94,50 @@ def add_track_to_closest_node(net,a,nodes):
         if a.is_exit(b) or b.is_exit(a):
             continue
 
+        # Too long?
+        if (d > max_dist):
+            continue
+
         if not net.add_track(a,b):
             return True
 
     return False
 
-def gen_random_network(net,n = 10,edge_buffer = 10):
+def gen_random_network(net,n = 10,grid_size = 40,grid_buf = 5,edge_buffer = 10):
     """Create a random network.
        
        n - number of tracks to add
     """
 
-    # add a bunch of random nodes to start with
-    for i in range(0,n):
-        net.nodes.append(
-                Node(
-                     (
-                      (random() * (net.width - (edge_buffer * 2))) + edge_buffer,
-                      (random() * (net.height - (edge_buffer * 2)) + edge_buffer)
-                     )
-                    )
-                )
+    # Start with n random nodes
 
+    # Generate list of candidate positions
+    grid_pos = []
+    for x in range(0,net.width / grid_size):
+        for y in range(0,net.height / grid_size):
+            grid_pos.append((x * grid_size,y * grid_size))
+
+    # Pick n random positions from grid_pos
+    for i in range(0,n):
+        pos = grid_pos[randrange(0,len(grid_pos))]
+        grid_pos.remove(pos)
+
+        x,y = pos
+
+        # Add some randomness within the confines of the grid
+        x += (random() * (grid_size - (grid_buf * 2))) + grid_buf
+        y += (random() * (grid_size - (grid_buf * 2))) + grid_buf
+
+        net.nodes.append(Node((x,y)))
+
+    d = 0
     while True:
+        d += 5 
+        print 'max_dist: ' + str(d)
+
         not_reachable = find_not_fully_reachable(net)
         if not not_reachable:
             break
 
         for a,n in not_reachable:
-            add_track_to_closest_node(net,a,n)
+            add_track_to_closest_node(net,a,n,max_dist = d)
