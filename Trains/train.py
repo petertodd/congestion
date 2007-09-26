@@ -31,7 +31,7 @@ class Train:
     occupying = False 
 
     # How far along we are on that track
-    travelled = 0
+    travelled = None 
 
     def __init__(self,net,location,speed=15.0,length=10):
         self.speed = speed
@@ -40,6 +40,9 @@ class Train:
 
         self.occupying = [location]
         location.present.append(self)
+
+        # Randomize starting position on the track
+        self.travelled = randrange(0,location.length)
 
         self.target = self.net.nodes[0]
 
