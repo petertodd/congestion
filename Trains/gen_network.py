@@ -43,23 +43,36 @@ def find_not_fully_reachable(net):
     for a in net.nodes:
         reaches[a] = Set()
 
-    # Recursive depth first search.
-    def dfs(start,reaches,n):
-        for x in n.exits:
-            if not (x.b in reaches[start]):
-                reaches[start].add(x.b)
-                if reaches[x.b]:
-                    reaches[start].union(reaches[x.b])
-                else:
-                    dfs(start,reaches,x.b)
-
     r = []
     all_nodes = Set(net.nodes)
     for n in net.nodes:
-        dfs(n,reaches,n)
+        reaches[n].add(n) # we can reach ourselves
+        print ' is now ' + str([str(j) for j in reaches[n]])
 
-        reaches[n].add(n)
-
+        # Breadth first search of all connected nodes.
+        l = [t.b for t in n.exits]
+        print 'from ' + str(n) + ' exits ' + str([str(j) for j in l])
+        for i in l:
+            print ' is now ' + str([str(j) for j in reaches[n]])
+            # Already know we can reach this node?
+            print 'is ' + str(i) + ' in ' + str([str(j) for j in reaches[n]]),
+            if not (i in reaches[n]):
+                print ' no'
+                # Reachability already calculated?
+                if reaches[i]:
+                    print ' reach already calculated -> ' + str([str(j) for j in reaches[i]])
+                    # Yes, just add the sets of reachable nodes together.
+                    reaches[n] |= reaches[i]
+                else:
+                    print ' adding ' +  str([str(t.b) for t in i.exits]) + ' to list'
+                    # Mark that we can reach i and add it's exits the list of
+                    # nodes to consider. 
+                    reaches[n].add(i)
+                    print ' is now ' + str([str(j) for j in reaches[n]])
+                    l += [t.b for t in i.exits]
+            else:
+                print ' yes'
+        print str(n) + ' reaches ' + str([str(j) for j in reaches[n]])
         j = all_nodes - reaches[n]
         if j:
             r.append((n,j))
@@ -104,7 +117,7 @@ def gen_random_network(net,n = 10,edge_buffer = 10):
     """
 
     # add a bunch of random nodes to start with
-    for i in range(0,n * 2):
+    for i in range(0,n):
         net.nodes.append(
                 Node(
                      (
@@ -134,7 +147,8 @@ def gen_random_network(net,n = 10,edge_buffer = 10):
             print 'failed.'
 
     print 'Cleaning up non-reachables.'
-    for i in range(0,10):
+    while True:
+        print 'Pass #' + str(i)
         not_reachable = find_not_fully_reachable(net)
         if not not_reachable:
             break

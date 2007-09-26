@@ -119,7 +119,7 @@ class Network:
             self.tracks.append(Track(a,b))
         return r
 
-    def add_random_trains(self,n = 4):
+    def add_random_trains(self,n = 20):
         """Add random trains to the network."""
 
         for i in range(0,n):
