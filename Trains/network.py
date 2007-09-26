@@ -124,4 +124,4 @@ class Network:
 
         for i in range(0,n):
             t = self.tracks[randrange(0,len(self.tracks))]
-            self.trains.append(Train(t))
+            self.trains.append(Train(self,t))

@@ -21,6 +21,8 @@
 
 from random import randrange
 
+from pathfinding import pathfind
+
 class Train:
     speed = False
     length = False
@@ -31,12 +33,15 @@ class Train:
     # How far along we are on that track
     travelled = 0
 
-    def __init__(self,location,speed=15.0,length=10):
+    def __init__(self,net,location,speed=15.0,length=10):
         self.speed = speed
         self.length = length
+        self.net = net
 
         self.occupying = [location]
         location.present.append(self)
+
+        self.target = self.net.tracks[0]
 
     def do(self,delta_t):
         # Move us along
@@ -44,18 +49,19 @@ class Train:
 
         # Have we reached the end of the current track segment?
         if (self.travelled > self.occupying[0].length):
-            # Where else can we go?
-            next_tracks = self.occupying[0].b.exits
-            assert(len(next_tracks))
-            next = next_tracks[randrange(0,len(next_tracks))]
-            
-            # take us off the track we just left
-            exited_track = self.occupying.pop()
-            exited_track.present.remove(self)
+            # Where should we go next? 
+           
+            # Pathfind to target.
+            next = pathfind(self.net,self.occupying[0],self.target)
 
-            # put us onto the next track
-            self.occupying.insert(0,next)
-            next.present.append(self)
+            if next:
+                # take us off the track we just left
+                exited_track = self.occupying.pop()
+                exited_track.present.remove(self)
 
-            # reset the distance travelled
-            self.travelled = 0
+                # put us onto the next track
+                self.occupying.insert(0,next)
+                next.present.append(self)
+
+                # reset the distance travelled
+                self.travelled = 0
