@@ -75,7 +75,7 @@ class Track:
 
         dx = b.pos[0] - a.pos[0]
         dy = b.pos[1] - a.pos[1]
-        self.length = sqrt((dx ** 2) + (dy ** 2))
+        self.length = int(sqrt((dx ** 2) + (dy ** 2)))
 
         self.present = []
 
