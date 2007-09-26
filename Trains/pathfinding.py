@@ -30,26 +30,25 @@ def pathfind(net,start,end):
 
        Returns the next best track to follow from start
     """
-    if start == end:
-        return None
+    assert(start != end)
 
     dist = {}
     prev = {}
-    for t in net.tracks:
-        dist[t] = maxint
-        prev[t] = None
+    for n in net.nodes:
+        dist[n] = maxint
+        prev[n] = None
     dist[start] = 0
     
     q = [start]
-    for t in q:
-        for x in t.b.exits:
-            print 'eval exit ' + str(x.b) + ' from ' + str(t.b)
-            alt = dist[t] + calc_cost(x)
-            print 'alt = ' + str(alt) + ' dist[x] = ' + str(dist[x])
-            if alt < dist[x]:
-                dist[x] = alt
-                prev[x] = t
-                q.append(x)
+    for n in q:
+        for t in n.exits:
+ #           print 'eval exit ' + str(x.b) + ' from ' + str(t.b)
+            alt = dist[n] + calc_cost(t)
+#            print 'alt = ' + str(alt) + ' dist[x] = ' + str(dist[x])
+            if alt < dist[t.b]:
+                dist[t.b] = alt
+                prev[t.b] = n
+                q.append(t.b)
 
     # Walk prev backwards to get our best solution
     i = end
@@ -58,4 +57,8 @@ def pathfind(net,start,end):
     while prev[i] != start:
         i = prev[i]
 
-    return i
+    # i is a node, we need to return a track
+    for t in start.exits:
+        if t.b == i:
+            return t
+    assert(False)

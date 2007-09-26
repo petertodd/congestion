@@ -42,8 +42,12 @@ class UserInterface:
 
         # Display the network
         for track in self.network.tracks:
-            for x,y in (track.a.pos,track.b.pos):
-                pygame.draw.circle(self.screen,(0,0,0),ip((x + 1,y + 1)),2)
+            for n in (track.a,track.b):
+                x,y = n.pos
+                c = (0,0,0)
+                if n == self.network.trains[0].target:
+                    c = (0,255,0)                                        
+                pygame.draw.circle(self.screen,c,ip((x + 1,y + 1)),2)
             pygame.draw.aaline(self.screen,(0,0,0),ip(track.a.pos),ip(track.b.pos))
 
         # Draw the trains

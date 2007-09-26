@@ -41,7 +41,7 @@ class Train:
         self.occupying = [location]
         location.present.append(self)
 
-        self.target = self.net.tracks[0]
+        self.target = self.net.nodes[0]
 
     def do(self,delta_t):
         # Move us along
@@ -50,18 +50,24 @@ class Train:
         # Have we reached the end of the current track segment?
         if (self.travelled > self.occupying[0].length):
             # Where should we go next? 
-           
+          
+            # Reached our target?
+            if self.occupying[0].b == self.target:
+                if self.target == self.net.nodes[0]:
+                    self.target = self.net.nodes[1]
+                else:
+                    self.target = self.net.nodes[0]
+
             # Pathfind to target.
-            next = pathfind(self.net,self.occupying[0],self.target)
+            next = pathfind(self.net,self.occupying[0].b,self.target)
 
-            if next:
-                # take us off the track we just left
-                exited_track = self.occupying.pop()
-                exited_track.present.remove(self)
+            # take us off the track we just left
+            exited_track = self.occupying.pop()
+            exited_track.present.remove(self)
 
-                # put us onto the next track
-                self.occupying.insert(0,next)
-                next.present.append(self)
+            # put us onto the next track
+            self.occupying.insert(0,next)
+            next.present.append(self)
 
-                # reset the distance travelled
-                self.travelled = 0
+            # reset the distance travelled
+            self.travelled = 0
