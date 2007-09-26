@@ -31,7 +31,10 @@ class Train:
     occupying = False 
 
     # How far along we are on that track
-    travelled = 0
+    travelled = None 
+
+    waiting_for = None
+    waiting_for_delta_t = None
 
     def __init__(self,net,location,speed=15.0,length=10):
         self.speed = speed
@@ -41,33 +44,51 @@ class Train:
         self.occupying = [location]
         location.present.append(self)
 
+        # Randomize starting position on the track
+        self.travelled = randrange(0,location.length)
+
         self.target = self.net.nodes[0]
 
     def do(self,delta_t):
-        # Move us along
-        self.travelled += delta_t * self.speed
-
         # Have we reached the end of the current track segment?
-        if (self.travelled > self.occupying[0].length):
-            # Where should we go next? 
-          
-            # Reached our target?
-            if self.occupying[0].b == self.target:
-                if self.target == self.net.nodes[0]:
-                    self.target = self.net.nodes[1]
+        if (self.travelled <= self.occupying[0].length):
+            # Nope, keep moving.
+            self.travelled += delta_t * self.speed
+        else:
+            if self.waiting_for:
+                # Waiting for track ahead to clear.
+                if not len(self.waiting_for.present) or \
+                    self.waiting_for.present[0].travelled > self.waiting_for.present[0].length + self.length:
+
+                    # take us off the track we just left
+                    exited_track = self.occupying.pop()
+                    exited_track.present.pop()
+
+                    # put us onto the next track
+                    self.occupying.insert(0,self.waiting_for)
+                    self.waiting_for.present.insert(0,self)
+
+                    # Waiting_for_time is the total time we've been waiting. The 
+                    # pathfinder code operates on distances. So logically, how far 
+                    # could we have gone in that time? While we're at it, do a 
+                    # quick, crude average as well.
+                    self.waiting_for.traffic = (self.waiting_for.traffic + self.waiting_for_time * self.speed) / 2
+
+                    self.travelled = 0
+                    self.waiting_for = None
                 else:
-                    self.target = self.net.nodes[0]
+                    # Still waiting, make note of the congestion for the pathfinder.
+                    self.waiting_for_time += delta_t 
+            else:
+                # Where should we go next? 
+              
+                # Reached our target?
+                if self.occupying[0].b == self.target:
+                    if self.target == self.net.nodes[0]:
+                        self.target = self.net.nodes[1]
+                    else:
+                        self.target = self.net.nodes[0]
 
-            # Pathfind to target.
-            next = pathfind(self.net,self.occupying[0].b,self.target)
-
-            # take us off the track we just left
-            exited_track = self.occupying.pop()
-            exited_track.present.remove(self)
-
-            # put us onto the next track
-            self.occupying.insert(0,next)
-            next.present.append(self)
-
-            # reset the distance travelled
-            self.travelled = 0
+                # Pathfind to target.
+                self.waiting_for = pathfind(self.net,self.occupying[0].b,self.target)
+                self.waiting_for_time = 0

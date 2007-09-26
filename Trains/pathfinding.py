@@ -23,7 +23,9 @@ from sys import maxint
 
 def calc_cost(t):
     """Returns the cost to traverse track t"""
-    return t.length
+
+    print str(t.length) + ' ' + str(int(t.traffic))
+    return t.length + int(t.traffic)
 
 def pathfind(net,start,end):
     """Find the shortest path from start to end.
@@ -42,9 +44,7 @@ def pathfind(net,start,end):
     q = [start]
     for n in q:
         for t in n.exits:
- #           print 'eval exit ' + str(x.b) + ' from ' + str(t.b)
             alt = dist[n] + calc_cost(t)
-#            print 'alt = ' + str(alt) + ' dist[x] = ' + str(dist[x])
             if alt < dist[t.b]:
                 dist[t.b] = alt
                 prev[t.b] = n
@@ -52,8 +52,6 @@ def pathfind(net,start,end):
 
     # Walk prev backwards to get our best solution
     i = end
-    print str(end)
-    print str(prev)
     while prev[i] != start:
         i = prev[i]
 

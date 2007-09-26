@@ -46,7 +46,7 @@ def main(argv):
 
     network = network.Network((400,400))
     gen_network.gen_random_network(network)
-    network.add_random_trains()
+    network.add_random_trains(n = 150)
 
     ui = ui.UserInterface(network,(400,400))
 
