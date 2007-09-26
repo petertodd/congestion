@@ -46,11 +46,8 @@ class Train:
         if (self.travelled > self.occupying[0].length):
             # Where else can we go?
             next_tracks = self.occupying[0].b.exits
-            if len(next_tracks):
-                next = next_tracks[randrange(0,len(next_tracks))]
-            else:
-                 # uh-oh, no exit, magically go to the start of this track
-                 next = self.occupying[0]
+            assert(len(next_tracks))
+            next = next_tracks[randrange(0,len(next_tracks))]
             
             # take us off the track we just left
             exited_track = self.occupying.pop()
