@@ -66,6 +66,9 @@ class Track:
     # The trains occupying this track 
     present = False 
 
+    # Reported traffic
+    traffic = False
+
     def __init__(self,a,b):
         self.a = a
         self.a.exits.append(self)
@@ -78,6 +81,14 @@ class Track:
         self.length = int(sqrt((dx ** 2) + (dy ** 2)))
 
         self.present = []
+        self.traffic = 0
+
+    def maintain(self,delta_t):
+        """Maintain the track, statistics and the like."""
+
+        # Traffic reports get out of date if no-one is using the track.
+        if not self.present:
+            self.traffic = max(self.traffic - (self.length * delta_t),0)
 
 class Network:
     """The graph of the train network."""
@@ -103,6 +114,8 @@ class Network:
     def do(self,delta_t):
         for t in self.trains:
             t.do(delta_t)
+        for t in self.tracks:
+            t.maintain(delta_t)
 
     def add_track(self,a,b):
         """Add a track between a and b.
