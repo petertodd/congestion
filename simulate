@@ -29,6 +29,6 @@ if __name__ == "__main__":
 
     import sys
 
-    from Trains.main import main
+    from Trains.Simulator.main import main
 
     main(sys.argv)
