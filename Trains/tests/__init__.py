@@ -20,7 +20,7 @@ DEBUG = False
 from main import *
 from meta import *
 
-class exampleTest(TestProgram):
+class trainsTest(TestProgram):
     """A command-line program that runs a set of tests; this is primarily
        for making test modules conveniently executable.
     """
@@ -44,7 +44,7 @@ Examples:
 
     def __init__(self,args):
         # Create a temp directory to play in
-        TestProgram.__init__(self, module='Example.tests', argv=args)
+        TestProgram.__init__(self, module='Trains.tests', argv=args)
 
     def parseArgs(self, argv):
         import getopt
@@ -106,4 +106,4 @@ Examples:
         except getopt.error, msg:
             self.usageExit(msg)
 
-main = exampleTest 
+main = trainsTest 

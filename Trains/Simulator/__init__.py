@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# vim: tabstop=4 expandtab shiftwidth=4 fileencoding=utf8
 # ### BOILERPLATE ###
 # Trains - train network thingy
 # Copyright (C) 2007 Peter Todd <pete@petertodd.org>
@@ -17,18 +15,3 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ### BOILERPLATE ###
-
-
-"""
-Train network toy.
-"""
-
-if __name__ == "__main__":
-    import locale
-    locale.setlocale(locale.LC_ALL, '')
-
-    import sys
-
-    from Trains.Simulator.main import main
-
-    main(sys.argv)

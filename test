@@ -29,6 +29,7 @@ if __name__ == "__main__":
 
     import sys
 
-    from Trains.Simulator.main import main
-
+    from Trains.tests import main
+#    sys.argv[0] += " test"
+#    del sys.argv[1]
     main(sys.argv)

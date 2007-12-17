@@ -14,7 +14,7 @@ import shutil
 import common
 
 from unittest import TestCase
-from Example.main import *
+from Trains.Simulator.main import *
 
 class MainTest(TestCase):
     """Perform tests of the main module"""
