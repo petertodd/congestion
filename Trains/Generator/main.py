@@ -19,6 +19,8 @@
 
 __version__ = "0.0"
 
+from xml.dom.minidom import Document
+
 def main(argv):
     """
     Script entry point.
@@ -39,22 +41,3 @@ def main(argv):
 
     (options, args) = parser.parse_args(argv)
 
-
-    import ui
-    import network
-    import gen_network
-
-    network = network.Network((400,400))
-    gen_network.gen_random_network(network)
-    network.add_random_trains(n = 150)
-
-    ui = ui.UserInterface(network,(400,400))
-
-
-    dt = 0.1
-    while True:
-        network.do(dt)
-        ui.do()
-        
-        import time
-        time.sleep(dt)
