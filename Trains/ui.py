@@ -47,10 +47,13 @@ class UserInterface:
                 c = (0,0,0)
                 size = 2
                 if n == self.network.nodes[0]:
-                    c = (0,255,0)
+                    c = (255,255,0)
                     size = 4
                 if n == self.network.nodes[1]:
                     c = (0,255,0)
+                    size = 4
+                if n == self.network.nodes[2]:
+                    c = (0,255,255)
                     size = 4
                 pygame.draw.circle(self.screen,c,ip((x + 1,y + 1)),size)
             pygame.draw.aaline(self.screen,(0,0,min(track.traffic,255)),ip(track.a.pos),ip(track.b.pos))

@@ -90,6 +90,8 @@ class Train:
                 if self.occupying[0].b == self.target:
                     if self.target == self.net.nodes[0]:
                         self.target = self.net.nodes[1]
+                    elif self.target == self.net.nodes[1]:
+                        self.target = self.net.nodes[2]
                     else:
                         self.target = self.net.nodes[0]
 
