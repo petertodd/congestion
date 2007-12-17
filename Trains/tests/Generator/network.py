@@ -1,7 +1,7 @@
 # vim: tabstop=4 expandtab shiftwidth=4 fileencoding=utf8
 # (c) 2007 Peter Todd <pete@petertodd.org>
 #
-# This program is made available under the GNU GPL version 2.0 or
+# This program is made available under the GNU GPL version 3.0 or
 # greater. See the accompanying file COPYING for details.
 #
 # This program is distributed WITHOUT ANY WARRANTY; without even the
@@ -11,17 +11,20 @@
 import os
 import shutil
 
-import common
+from Trains.tests.common import *
 
 from unittest import TestCase
-from Trains.Simulator.main import *
+from Trains.Generator.network import *
 
-class MainTest(TestCase):
-    """Perform tests of the main module"""
+class TrainsGeneratorNetworkTest(TestCase):
+    """Perform tests of the Trains.network module"""
 
-    def testMain(self):
-        """main() accepts -m"""
+    def testNetwork(self):
+        """Basic functionality."""
 
-        common.load_dataset("empty")
+        load_dataset("empty")
 
-        main(["-m","test message"])
+
+        n = Network()
+
+

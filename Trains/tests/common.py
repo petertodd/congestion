@@ -30,7 +30,7 @@ def clean_tmpd():
     """Sets tmpd to a unique name guaranteed to have nothing at it."""
     global tmpd
     if not tmpd:
-        tmpd = tempfile.mkdtemp(prefix="example_tests_")
+        tmpd = tempfile.mkdtemp(prefix="train_tests_")
     shutil.rmtree(tmpd)
 
 def load_dataset(name):
