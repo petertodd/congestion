@@ -11,7 +11,7 @@
 import os
 import shutil
 
-from Trains.tests.common import *
+from Trains.tests import common 
 
 from unittest import TestCase
 from Trains.Generator.network import *
@@ -20,11 +20,8 @@ class TrainsGeneratorNetworkTest(TestCase):
     """Perform tests of the Trains.network module"""
 
     def testNetwork(self):
-        """Basic functionality."""
+        """Netowrk() basic functionality"""
 
-        load_dataset("empty")
-
+        common.load_dataset("empty")
 
         n = Network()
-
-
