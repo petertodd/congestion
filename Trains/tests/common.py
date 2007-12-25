@@ -21,15 +21,14 @@ def dataset_path(name):
     from os.path import join, split
     path = join(split(__file__)[0], 'data', name)
 
-    from os.path import exists
-    assert(exists(path))
+    assert(os.path.exists(path))
 
     return path
 
 def clean_tmpd():
     """Sets tmpd to a unique name guaranteed to have nothing at it."""
     global tmpd
-    if not tmpd:
+    if not tmpd or not os.path.exists(tmpd):
         tmpd = tempfile.mkdtemp(prefix="train_tests_")
     shutil.rmtree(tmpd)
 
