@@ -24,4 +24,16 @@ class TrainsGeneratorNetworkTest(TestCase):
 
         common.load_dataset("empty")
 
-        n = Network()
+        net = Network()
+
+        na = net.add_node((0,0))
+        nb = net.add_node((1,1))
+        nc = net.add_node((0,1))
+        nd = net.add_node((1,0))
+
+        ta = net.add_track(na,nb)
+        tb = net.add_track(nb,nc)
+        tc = net.add_track(nc,nd)
+        td = net.add_track(nd,na)
+
+

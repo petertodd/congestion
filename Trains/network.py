@@ -69,6 +69,28 @@ class Network:
     height = None
 
 
+    def __init__(self,f = None):
+        """Create a new network
+
+        f - Optional file handle to load network from"""
+
+        self.nodes = []
+        self.tracks = []
+
+    def add_node(self,pos):
+        """Add a node to the network at position pos"""
+
+        n = Node(pos)
+
+        self.nodes.append(n)
+
+    def add_track(self,a,b):
+        """Add a track to the network connecting nodes a and b"""
+
+        t = Track(a,b)
+
+        self.tracks.append(t)
+
     def load(f):
         """Load the network from file handle f"""
 
