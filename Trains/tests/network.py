@@ -14,9 +14,9 @@ import shutil
 from Trains.tests import common 
 
 from unittest import TestCase
-from Trains.Generator.network import *
+from Trains.network import *
 
-class TrainsGeneratorNetworkTest(TestCase):
+class TrainsNetworkTest(TestCase):
     """Perform tests of the Trains.network module"""
 
     def testNetwork(self):
@@ -36,4 +36,4 @@ class TrainsGeneratorNetworkTest(TestCase):
         tc = net.add_track(nc,nd)
         td = net.add_track(nd,na)
 
-
+        net.save(open(common.tmpd + "foo",'w'))

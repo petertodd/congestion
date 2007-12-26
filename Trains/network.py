@@ -19,7 +19,7 @@
 
 # Basic definition of a train network, with loading and saving functions.
 
-import xml.dom.minidom
+from xml.dom.minidom import parse,Document
 
 class Node:
     """A single node within the train network."""
@@ -91,12 +91,12 @@ class Network:
 
         self.tracks.append(t)
 
-    def load(f):
+    def load(self,f):
         """Load the network from file handle f"""
 
-        dom = xml.dom.minidom.parse(f)
+        dom = parse(f)
 
-    def save(f):
+    def save(self,f):
         """Load the network from file handle f"""
 
-        doc = xml.dom.minidom.Document()
+        doc = Document()
