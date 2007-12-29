@@ -44,6 +44,9 @@ class Node:
         return str(self.pos)
 
     def __eq__(self,other):
+        if type(self) != type(other):
+            return False
+
         if self.pos == other.pos:
             return True
         else:
@@ -74,6 +77,9 @@ class Track:
         self.b = b
 
     def __eq__(self,other):
+        if type(self) != type(other):
+            return False
+
         if (self.a == other.a) and (self.b == other.b):
             return True
         else:

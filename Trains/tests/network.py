@@ -34,6 +34,12 @@ class TrainsNetworkTest(TestCase):
         self.assert_(a == d)
         self.assert_(not a != d)
 
+        # Comparisons also have to handle comparisons against None
+        self.assert_(not a == None)
+        self.assert_(a != None)
+        self.assert_(not None == a)
+        self.assert_(None != a)
+
     def testNetwork(self):
         """Network() basic functionality"""
 
