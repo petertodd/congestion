@@ -19,6 +19,8 @@
 
 # Basic definition of a train network, with loading and saving functions.
 
+from math import sqrt
+
 from xml.dom.minidom import parse,Document
 
 class Node:
@@ -90,8 +92,8 @@ class Track:
 
     def length(self):
         """Returns the current length of the track"""
-        dx = b.pos[0] - a.pos[0]
-        dy = b.pos[1] - a.pos[1]
+        dx = self.b.pos[0] - self.a.pos[0]
+        dy = self.b.pos[1] - self.a.pos[1]
         return int(sqrt((dx ** 2) + (dy ** 2)))
 
 
