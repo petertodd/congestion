@@ -20,7 +20,7 @@ class TrainsNetworkTest(TestCase):
     """Perform tests of the Trains.network module"""
 
     def testNodeComparisons(self):
-        """Node comparison functions work"""
+        """Node comparison functions"""
 
         a = Node((0,0))
         b = Node((1,0))
@@ -33,6 +33,19 @@ class TrainsNetworkTest(TestCase):
         self.assert_(not b != c)
         self.assert_(a == d)
         self.assert_(not a != d)
+
+    def testTrackLength(self):
+        """Track.length()"""
+
+        a = Node((0,0))
+        b = Node((6,0))
+        c = Node((0,8))
+        d = Node((6,8))
+
+        self.assert_(Track(a,a).length() == 0)
+        self.assert_(Track(a,b).length() == 6)
+        self.assert_(Track(a,c).length() == 8)
+        self.assert_(Track(a,d).length() == 10)
 
     def testNetwork(self):
         """Network() basic functionality"""
