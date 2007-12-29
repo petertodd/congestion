@@ -30,11 +30,34 @@ class Node:
     pos = (None,None) 
 
     def __init__(self,pos):
-        x,y = pos
-        self.pos = (int(x),int(y))
+        if type(pos) == type(()):
+            x,y = pos
+            self.pos = (int(x),int(y))
+        elif type(pos) == type(u''):
+            p = pos[1:-1].split(',')
+            x = int(p[0])
+            y = int(p[1])
+
+            self.pos = (x,y)
 
     def __str__(self):
         return str(self.pos)
+
+    def __eq__(self,other):
+        if self.pos == other.pos:
+            return True
+        else:
+            return False
+
+    def __ne__(self,other):
+        return not self.__eq__(other)
+
+    def dump_dom(self,doc):
+        n = doc.createElement("node")
+
+        n.setAttribute("pos",str(self))
+
+        return n
 
 class Track:
     """A single track within the train network.
@@ -50,12 +73,29 @@ class Track:
         self.a = a
         self.b = b
 
+    def __eq__(self,other):
+        if (self.a == other.a) and (self.b == other.b):
+            return True
+        else:
+            return False
+
+    def __ne__(self,other):
+        return not self.__eq__(other)
+
     def length(self):
         """Returns the current length of the track"""
         dx = b.pos[0] - a.pos[0]
         dy = b.pos[1] - a.pos[1]
         return int(sqrt((dx ** 2) + (dy ** 2)))
 
+
+    def dump_dom(self,doc):
+        t = doc.createElement("track")
+
+        t.setAttribute("a",str(self.a))
+        t.setAttribute("b",str(self.b))
+
+        return t 
 
 class Network:
     """The graph of the train network."""
@@ -77,12 +117,29 @@ class Network:
         self.nodes = []
         self.tracks = []
 
+        if f:
+            self.load(f)            
+
+    def __eq__(self,other):
+        for (a,b) in zip(self.nodes,other.nodes):
+            if a != b:
+                return False
+        for (a,b) in zip(self.tracks,other.tracks):
+            if a != b:
+                return False
+        return True
+
+    def __ne__(self,other):
+        return not self.__eq__(other)
+
     def add_node(self,pos):
         """Add a node to the network at position pos"""
 
         n = Node(pos)
 
         self.nodes.append(n)
+
+        return n
 
     def add_track(self,a,b):
         """Add a track to the network connecting nodes a and b"""
@@ -94,9 +151,46 @@ class Network:
     def load(self,f):
         """Load the network from file handle f"""
 
+        # Clear
+        self.nodes = []
+        self.tracks = []
+
+
         dom = parse(f)
 
+        train_network_elements = dom.getElementsByTagName('train_network')
+        assert(train_network_elements.length == 1)
+        train_network_element = train_network_elements[0]
+
+        nodes_elements = train_network_element.getElementsByTagName('nodes')
+        assert(nodes_elements.length == 1)
+        nodes_element = nodes_elements[0]
+
+        node_elements = nodes_element.getElementsByTagName('node')
+
+        for n in node_elements:
+            self.nodes.append(Node(n.getAttribute('pos')))
+    
+        tracks_elements = train_network_element.getElementsByTagName('tracks')
+
     def save(self,f):
-        """Load the network from file handle f"""
+        """Save the network to file handle f"""
 
         doc = Document()
+
+        net = doc.createElement("train_network")
+        doc.appendChild(net)
+
+        nodes = doc.createElement("nodes")
+        net.appendChild(nodes)
+
+        for n in self.nodes:
+            nodes.appendChild(n.dump_dom(doc))
+
+        tracks = doc.createElement("tracks")
+        net.appendChild(tracks)
+
+        for t in self.tracks:
+            tracks.appendChild(t.dump_dom(doc))
+
+        doc.writexml(f,addindent=" ",newl="\n")

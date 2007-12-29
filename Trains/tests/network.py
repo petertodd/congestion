@@ -19,8 +19,23 @@ from Trains.network import *
 class TrainsNetworkTest(TestCase):
     """Perform tests of the Trains.network module"""
 
+    def testNodeComparisons(self):
+        """Node comparison functions work"""
+
+        a = Node((0,0))
+        b = Node((1,0))
+        c = b
+        d = Node((0,0))
+
+        self.assert_(a != b)
+        self.assert_(not a == b)
+        self.assert_(b == c)
+        self.assert_(not b != c)
+        self.assert_(a == d)
+        self.assert_(not a != d)
+
     def testNetwork(self):
-        """Netowrk() basic functionality"""
+        """Network() basic functionality"""
 
         common.load_dataset("empty")
 
@@ -36,4 +51,9 @@ class TrainsNetworkTest(TestCase):
         tc = net.add_track(nc,nd)
         td = net.add_track(nd,na)
 
-        net.save(open(common.tmpd + "foo",'w'))
+        net.save(open(common.tmpd + "/foo",'w'))
+
+        net2 = Network(open(common.tmpd + "/foo",'r'))
+
+        # compare
+        self.assert_(net == net2)
