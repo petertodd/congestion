@@ -150,11 +150,16 @@ class Network:
         return n
 
     def add_track(self,a,b):
-        """Add a track to the network connecting nodes a and b"""
+        """Add a track to the network connecting nodes a and b
+        
+        Returns the added track
+        """
 
         t = Track(a,b)
 
         self.tracks.append(t)
+
+        return t
 
     def load(self,f):
         """Load the network from file handle f"""

@@ -19,6 +19,7 @@ DEBUG = False
 
 from meta import *
 from Trains.tests.network import *
+from Trains.tests.Generator.network import *
 
 class trainsTest(TestProgram):
     """A command-line program that runs a set of tests; this is primarily
