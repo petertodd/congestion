@@ -55,8 +55,8 @@ class TrainsNetworkTest(TestCase):
         net = Network()
 
         na = net.add_node((0,0))
-        nb = net.add_node((1,1))
-        nc = net.add_node((0,1))
+        nb = net.add_node((0,1))
+        nc = net.add_node((1,1))
         nd = net.add_node((1,0))
 
         ta = net.add_track(na,nb)
