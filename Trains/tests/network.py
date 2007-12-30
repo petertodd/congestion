@@ -40,6 +40,13 @@ class TrainsNetworkTest(TestCase):
         self.assert_(not None == a)
         self.assert_(None != a)
 
+    def testNodeHashable(self):
+        """Node objects are hashable"""
+
+        a = Node((0,0))
+
+        hash(a)
+
     def testTrackLength(self):
         """Track.length()"""
 
