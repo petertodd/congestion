@@ -64,6 +64,13 @@ class Node:
     def __hash__(self):
         return hash(self.pos)
 
+    def is_exit(self,b):
+        """Returns true if node b is an exit."""
+        x = set()
+        for y in self.exits:
+            x.add(y.b)
+        return b in x
+
     def dump_dom(self,doc):
         n = doc.createElement("node")
 

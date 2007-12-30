@@ -27,17 +27,28 @@ class TrainsNetworkTest(TestCase):
         c = Node((2,2))
 
         self.assert_(a.exits == set())
+        self.assert_(not a.is_exit(a))
+        self.assert_(not a.is_exit(b))
+
         self.assert_(b.exits == set())
+        self.assert_(not b.is_exit(a))
+        self.assert_(not b.is_exit(b))
+
         self.assert_(id(a.exits) != id(b.exits))
 
         ta = Track(a,b)
 
         self.assert_(a.exits == set((ta,)))
+        self.assert_(a.is_exit(b))
         self.assert_(b.exits == set())
+        self.assert_(not b.is_exit(a))
 
         tb = Track(a,c)
 
         self.assert_(a.exits == set((ta,tb)))
+        self.assert_(a.is_exit(b))
+        self.assert_(a.is_exit(c))
+        self.assert_(not a.is_exit(a))
 
     def testNodeComparisons(self):
         """Node comparison functions"""
