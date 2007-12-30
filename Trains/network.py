@@ -121,12 +121,18 @@ class Network:
             self.load(f)            
 
     def __eq__(self,other):
+        if len(self.nodes) != len(other.nodes):
+            return False
         for (a,b) in zip(self.nodes,other.nodes):
             if a != b:
                 return False
+
+        if len(self.tracks) != len(other.tracks):
+            return False
         for (a,b) in zip(self.tracks,other.tracks):
             if a != b:
                 return False
+
         return True
 
     def __ne__(self,other):
