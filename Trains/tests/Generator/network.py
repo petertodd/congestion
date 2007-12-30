@@ -63,3 +63,16 @@ class TrainsGeneratorNetworkTest(TestCase):
 
         # FIXME: Add case for lines sharing endpoints, or completely within
         # another.
+
+    def testNetworkAddTrack(self):
+        """Does Generator.Network.add_track()/add_node() results in correct subclasses"""
+
+        net = Network()
+
+        na = net.add_node((0,0))
+        nb = net.add_node((0,1))
+
+        (t,i) = net.add_track(na,nb)
+
+        self.assert_(isinstance(na,Node))
+        self.assert_(isinstance(t,Track))

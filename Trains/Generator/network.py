@@ -36,7 +36,7 @@ class Track(Trains.network.Track):
        """
 
     def __init__(self,a,b):
-        Trains.network.Node.__init__(self,a,b)
+        Trains.network.Track.__init__(self,a,b)
 
 class Network(Trains.network.Network):
     """The graph of the train network."""
@@ -48,6 +48,9 @@ class Network(Trains.network.Network):
     # Width and height of the playfield
     width = None 
     height = None
+
+    node_generator = Node
+    track_generator = Track
 
     def add_track(self,a,b):
         """Add a track between a and b.
