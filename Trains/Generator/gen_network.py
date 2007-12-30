@@ -19,6 +19,8 @@
 
 """Ways of generating random networks from scratch."""
 
+import sys
+
 from random import random,randrange
 from network import *
 from sets import Set
@@ -91,7 +93,7 @@ def add_track_to_closest_node(net,a,nodes,max_dist = 500):
             continue 
 
         # Is there already a track between the two in either direction?
-        if a.is_exit(b) or b.is_exit(a):
+        if a.is_exit(b) or b.is_exit(a): 
             continue
 
         # Too long?
@@ -103,7 +105,7 @@ def add_track_to_closest_node(net,a,nodes,max_dist = 500):
 
     return False
 
-def gen_random_network(net,n = 10,grid_size = 40,grid_buf = 5,edge_buffer = 10):
+def gen_random_network(net,width=600,height=800,n = 10,grid_size = 40,grid_buf = 5,edge_buffer = 10):
     """Create a random network.
        
        n - number of tracks to add
@@ -113,8 +115,8 @@ def gen_random_network(net,n = 10,grid_size = 40,grid_buf = 5,edge_buffer = 10):
 
     # Generate list of candidate positions
     grid_pos = []
-    for x in range(0,net.width / grid_size):
-        for y in range(0,net.height / grid_size):
+    for x in range(0,width / grid_size):
+        for y in range(0,height / grid_size):
             grid_pos.append((x * grid_size,y * grid_size))
 
     # Pick n random positions from grid_pos
@@ -133,7 +135,7 @@ def gen_random_network(net,n = 10,grid_size = 40,grid_buf = 5,edge_buffer = 10):
     d = 0
     while True:
         d += 5 
-        print 'max_dist: ' + str(d)
+        print >> sys.stderr, 'max_dist: ' + str(d)
 
         not_reachable = find_not_fully_reachable(net)
         if not not_reachable:

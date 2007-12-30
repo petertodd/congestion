@@ -19,7 +19,10 @@
 
 __version__ = "0.0"
 
-from xml.dom.minidom import Document
+import sys
+
+from Trains.Generator.network import Network
+from Trains.Generator.gen_network import gen_random_network
 
 def main(argv):
     """
@@ -41,3 +44,8 @@ def main(argv):
 
     (options, args) = parser.parse_args(argv)
 
+
+    net = Network()
+    gen_random_network(net)
+
+    net.save(sys.stdout)
