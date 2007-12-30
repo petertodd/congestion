@@ -105,7 +105,7 @@ def add_track_to_closest_node(net,a,nodes,max_dist = 500):
 
     return False
 
-def gen_random_network(net,width=600,height=800,n = 10,grid_size = 40,grid_buf = 5,edge_buffer = 10):
+def gen_random_network(net,width=800,height=600,n = 10,grid_size = 40,grid_buf = 5,edge_buffer = 10):
     """Create a random network.
        
        n - number of tracks to add
