@@ -19,6 +19,37 @@ from Trains.network import *
 class TrainsNetworkTest(TestCase):
     """Perform tests of the Trains.network module"""
 
+    def testNodeExits(self):
+        """Node exits list is kept updated"""
+
+        a = Node((0,0))
+        b = Node((1,1))
+        c = Node((2,2))
+
+        self.assert_(a.exits == set())
+        self.assert_(not a.is_exit(a))
+        self.assert_(not a.is_exit(b))
+
+        self.assert_(b.exits == set())
+        self.assert_(not b.is_exit(a))
+        self.assert_(not b.is_exit(b))
+
+        self.assert_(id(a.exits) != id(b.exits))
+
+        ta = Track(a,b)
+
+        self.assert_(a.exits == set((ta,)))
+        self.assert_(a.is_exit(b))
+        self.assert_(b.exits == set())
+        self.assert_(not b.is_exit(a))
+
+        tb = Track(a,c)
+
+        self.assert_(a.exits == set((ta,tb)))
+        self.assert_(a.is_exit(b))
+        self.assert_(a.is_exit(c))
+        self.assert_(not a.is_exit(a))
+
     def testNodeComparisons(self):
         """Node comparison functions"""
 
@@ -39,6 +70,23 @@ class TrainsNetworkTest(TestCase):
         self.assert_(a != None)
         self.assert_(not None == a)
         self.assert_(None != a)
+
+    def testNodeHashable(self):
+        """Node objects are hashable"""
+
+        a = Node((0,0))
+
+        hash(a)
+
+    def testTrackHashable(self):
+        """Track objects are hashable"""
+
+        a = Node((0,0))
+        b = Node((1,1))
+
+        t = Track(a,b)
+
+        hash(t)
 
     def testTrackLength(self):
         """Track.length()"""

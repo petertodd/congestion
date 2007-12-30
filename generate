@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # vim: tabstop=4 expandtab shiftwidth=4 fileencoding=utf8
 # ### BOILERPLATE ###
 # Trains - train network thingy
@@ -17,35 +18,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ### BOILERPLATE ###
 
-__version__ = "0.0"
 
-import sys
+"""
+Train network toy.
+"""
 
-from Trains.Generator.network import Network
-from Trains.Generator.gen_network import gen_random_network
+if __name__ == "__main__":
+    import locale
+    locale.setlocale(locale.LC_ALL, '')
 
-def main(argv):
-    """
-    Script entry point.
+    import sys
 
-    Parse the command line options.
-    """
-    global __version__
+    from Trains.Generator.main import main
 
-    from optparse import OptionParser
-
-    parser = OptionParser(usage="usage: %prog [OPTION...] command [ARG...]",version=__version__)
-
-    parser.set_defaults(message="Hello World!")
-
-    parser.add_option("--message","-m",
-            action="store", type="string", dest="message",
-            help="set message to display, defaults to %default")
-
-    (options, args) = parser.parse_args(argv)
-
-
-    net = Network()
-    gen_random_network(net)
-
-    net.save(sys.stdout)
+    main(sys.argv)

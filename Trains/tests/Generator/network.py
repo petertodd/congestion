@@ -55,3 +55,11 @@ class TrainsGeneratorNetworkTest(TestCase):
 
         # Second diagonal, will intersect with first
         T(nb,nd,False,(t,))
+
+
+        # An overlapping track should intersect as well.
+        T(na,nc,False,(t,))
+        T(nc,na,False,(t,))
+
+        # FIXME: Add case for lines sharing endpoints, or completely within
+        # another.
