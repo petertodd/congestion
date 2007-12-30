@@ -17,47 +17,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ### BOILERPLATE ###
 
+import Trains.network
+
 from random import random,randrange
-from intersect import Intersect
 from train import Train
 from sets import Set
 
-class Node:
+class Node(Trains.network.Node):
     """A single node within the train network."""
 
-    # The physical position of the node
-    pos = (0,0)
-
-    # The list of tracks going from this node
-    exits = False 
-
     def __init__(self,pos):
-        x,y = pos
-        self.pos = (int(x),int(y))
-        self.exits = []
+        Trains.network.Node.__init__(self,pos)
 
-    def is_exit(self,b):
-        """Returns true if node b is an exit."""
-        x = Set()
-        for y in self.exits:
-            x.add(y.b)
-        return b in x
-
-    def __str__(self):
-        return str(self.pos)
-
-class Track:
+class Track(Trains.network.Track):
     """A single track within the train network.
        
        Tracks are one way, a to b.
        """
-
-    # The end points
-    a = False
-    b = False
-
-    # Length, pre-calculated
-    length = False
 
     # The trains occupying this track 
     present = False 
@@ -69,15 +45,7 @@ class Track:
     traffic = False
 
     def __init__(self,a,b):
-        self.a = a
-        self.a.exits.append(self)
-        self.b = b
-
-        from math import sqrt
-
-        dx = b.pos[0] - a.pos[0]
-        dy = b.pos[1] - a.pos[1]
-        self.length = int(sqrt((dx ** 2) + (dy ** 2)))
+        Trains.network.Track.__init__(self,a,b)
 
         self.present = []
         self.waiting_to_enter = []
@@ -90,25 +58,22 @@ class Track:
         if not self.waiting_to_enter:
             self.traffic = 0  
 
-class Network:
+class Network(Trains.network.Network):
     """The graph of the train network."""
 
-    # All the nodes and tracks in the system
-    nodes = False
-    tracks = False
-
-    # Width and height of the playfield
-    width = False
-    height = False
-
     # Trains present in the system
-    trains = False
+    trains = [] 
 
-    def __init__(self,dims):
-        self.width,self.height = dims
+    node_generator = Node
+    track_generator = Track
 
-        self.nodes = []
-        self.tracks = []
+    def __init__(self,f = None):
+        """Create a new Network
+
+        f - Optional file handle to load network from"""
+
+        Trains.network.Network.__init__(self,f)
+
         self.trains = []
 
     def do(self,delta_t):
@@ -116,21 +81,6 @@ class Network:
             t.do(delta_t)
         for t in self.tracks:
             t.maintain(delta_t)
-
-    def add_track(self,a,b):
-        """Add a track between a and b.
-
-           If the new track would intersect other existing tracks, returns the
-           list of such tracks. Otherwise returns None and succeeds.
-        """
-
-        r = []
-        for t in self.tracks:
-            if Intersect((a.pos,b.pos),(t.a.pos,t.b.pos)):
-                r.append(t)
-        if not r:
-            self.tracks.append(Track(a,b))
-        return r
 
     def add_random_trains(self,n = 20):
         """Add random trains to the network."""

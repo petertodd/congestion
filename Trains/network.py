@@ -135,6 +135,11 @@ class Network:
     height = None
 
 
+    # Generator functions to create a new Node or Track, to be changed by
+    # subclasses.
+    node_generator = Node
+    track_generator = Track
+
     def __init__(self,f = None):
         """Create a new network
 
@@ -161,7 +166,7 @@ class Network:
     def add_node(self,pos):
         """Add a node to the network at position pos"""
 
-        n = Node(pos)
+        n = self.node_generator(pos)
 
         self.nodes.append(n)
 
@@ -173,7 +178,7 @@ class Network:
         Returns the added track
         """
 
-        t = Track(a,b)
+        t = self.track_generator(a,b)
 
         self.tracks.append(t)
 

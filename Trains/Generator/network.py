@@ -36,7 +36,7 @@ class Track(Trains.network.Track):
        """
 
     def __init__(self,a,b):
-        Trains.network.Node.__init__(self,a,b)
+        Trains.network.Track.__init__(self,a,b)
 
 class Network(Trains.network.Network):
     """The graph of the train network."""
@@ -48,6 +48,9 @@ class Network(Trains.network.Network):
     # Width and height of the playfield
     width = None 
     height = None
+
+    node_generator = Node
+    track_generator = Track
 
     def add_track(self,a,b):
         """Add a track between a and b.
@@ -66,6 +69,11 @@ class Network(Trains.network.Network):
                or ((a.pos == t.a.pos) and (b.pos == t.b.pos)) \
                or ((a.pos == t.b.pos) and (b.pos == t.a.pos)):
                 i.append(t)
+
+
+        # FIXME: The following is subtly incorrect, as the added Track is a
+        # Trains.network.Track object rather than the correct
+        # Trains.Generator.network.Track
         if not i:
             n = Trains.network.Network.add_track(self,a,b)
         return (n,tuple(i))
