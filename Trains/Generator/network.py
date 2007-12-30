@@ -64,6 +64,11 @@ class Network(Trains.network.Network):
         for t in self.tracks:
             if Intersect((a.pos,b.pos),(t.a.pos,t.b.pos)):
                 i.append(t)
+
+
+        # FIXME: The following is subtly incorrect, as the added Track is a
+        # Trains.network.Track object rather than the correct
+        # Trains.Generator.network.Track
         if not i:
             n = Trains.network.Network.add_track(self,a,b)
         return (n,tuple(i))
