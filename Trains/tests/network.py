@@ -19,6 +19,26 @@ from Trains.network import *
 class TrainsNetworkTest(TestCase):
     """Perform tests of the Trains.network module"""
 
+    def testNodeExits(self):
+        """Node exits list is kept updated"""
+
+        a = Node((0,0))
+        b = Node((1,1))
+        c = Node((2,2))
+
+        self.assert_(a.exits == set())
+        self.assert_(b.exits == set())
+        self.assert_(id(a.exits) != id(b.exits))
+
+        ta = Track(a,b)
+
+        self.assert_(a.exits == set((ta,)))
+        self.assert_(b.exits == set())
+
+        tb = Track(a,c)
+
+        self.assert_(a.exits == set((ta,tb)))
+
     def testNodeComparisons(self):
         """Node comparison functions"""
 
@@ -46,6 +66,16 @@ class TrainsNetworkTest(TestCase):
         a = Node((0,0))
 
         hash(a)
+
+    def testTrackHashable(self):
+        """Track objects are hashable"""
+
+        a = Node((0,0))
+        b = Node((1,1))
+
+        t = Track(a,b)
+
+        hash(t)
 
     def testTrackLength(self):
         """Track.length()"""

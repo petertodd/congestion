@@ -31,7 +31,11 @@ class Node:
     # Nodes are uniquely identified by their position.
     pos = (None,None) 
 
+    # Tracks going from this node
+    exits = set() 
+
     def __init__(self,pos):
+        self.exits = set()
         if type(pos) == type(()):
             x,y = pos
             self.pos = (int(x),int(y))
@@ -79,6 +83,7 @@ class Track:
 
     def __init__(self,a,b):
         self.a = a
+        self.a.exits.add(self)
         self.b = b
 
     def __eq__(self,other):
@@ -92,6 +97,9 @@ class Track:
 
     def __ne__(self,other):
         return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((hash(self.a),hash(self.b)))
 
     def length(self):
         """Returns the current length of the track"""
