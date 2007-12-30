@@ -55,6 +55,9 @@ class Node:
     def __ne__(self,other):
         return not self.__eq__(other)
 
+    def __hash__(self):
+        return hash(self.pos)
+
     def dump_dom(self,doc):
         n = doc.createElement("node")
 
