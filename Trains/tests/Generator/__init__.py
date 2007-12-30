@@ -1,4 +1,3 @@
-# vim: tabstop=4 expandtab shiftwidth=4 fileencoding=utf8
 # ### BOILERPLATE ###
 # Trains - train network thingy
 # Copyright (C) 2007 Peter Todd <pete@petertodd.org>
@@ -16,28 +15,3 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ### BOILERPLATE ###
-
-__version__ = "0.0"
-
-from xml.dom.minidom import Document
-
-def main(argv):
-    """
-    Script entry point.
-
-    Parse the command line options.
-    """
-    global __version__
-
-    from optparse import OptionParser
-
-    parser = OptionParser(usage="usage: %prog [OPTION...] command [ARG...]",version=__version__)
-
-    parser.set_defaults(message="Hello World!")
-
-    parser.add_option("--message","-m",
-            action="store", type="string", dest="message",
-            help="set message to display, defaults to %default")
-
-    (options, args) = parser.parse_args(argv)
-

@@ -21,6 +21,9 @@ class MetaTest(TestCase):
 
         self.assertRaises(AssertionError,common.load_dataset,"invalid dataset")
 
+        # make sure the above didn't clobber further tests 
+        common.load_dataset('empty')
+
     def testCheckDataset(self):
         """check_dataset()"""
 
