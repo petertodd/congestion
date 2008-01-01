@@ -211,7 +211,7 @@ class Network:
         node_elements = nodes_element.getElementsByTagName('node')
 
         for n in node_elements:
-            self.nodes.append(Node(n.getAttribute('pos')))
+            self.nodes.append(self.node_generator(n.getAttribute('pos')))
    
 
         tracks_elements = train_network_element.getElementsByTagName('tracks')
@@ -230,7 +230,7 @@ class Network:
             a = pos2node[t.getAttribute('a')]
             b = pos2node[t.getAttribute('b')]
 
-            self.tracks.append(Track(a,b))
+            self.tracks.append(self.track_generator(a,b))
 
     def save(self,f):
         """Save the network to file handle f"""

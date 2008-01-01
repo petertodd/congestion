@@ -76,3 +76,14 @@ class TrainsGeneratorNetworkTest(TestCase):
 
         self.assert_(isinstance(na,Node))
         self.assert_(isinstance(t,Track))
+
+    def testNetworkLoadUsesNodeTrackGenerators(self):
+        """Generator.Network.load() results in correct subclasses for Node and Tracks"""
+        common.load_dataset('basic_networks')
+
+        net = Network(common.tmpd + '/square')
+
+        for n in net.nodes:
+            self.assert_(isinstance(n,Node))
+        for t in net.tracks:
+            self.assert_(isinstance(t,Track))
