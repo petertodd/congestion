@@ -20,7 +20,7 @@ class TrainsSimulatorNetworkTest(TestCase):
     """Perform tests of the Trains.Simulator.network module"""
 
     def testNetworkAddTrack(self):
-        """Does Simulator.Network.add_track()/add_node() results in correct subclasses"""
+        """Simulator.Network.add_track()/add_node() results in correct subclasses"""
 
         net = Network()
 

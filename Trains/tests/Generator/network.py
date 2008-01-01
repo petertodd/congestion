@@ -65,7 +65,7 @@ class TrainsGeneratorNetworkTest(TestCase):
         # another.
 
     def testNetworkAddTrack(self):
-        """Does Generator.Network.add_track()/add_node() results in correct subclasses"""
+        """Generator.Network.add_track()/add_node() results in correct subclasses"""
 
         net = Network()
 
