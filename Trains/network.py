@@ -152,12 +152,18 @@ class Network:
             self.load(f)            
 
     def __eq__(self,other):
+        if len(self.nodes) != len(other.nodes):
+            return False
         for (a,b) in zip(self.nodes,other.nodes):
             if a != b:
                 return False
+
+        if len(self.tracks) != len(other.tracks):
+            return False
         for (a,b) in zip(self.tracks,other.tracks):
             if a != b:
                 return False
+
         return True
 
     def __ne__(self,other):
@@ -206,8 +212,25 @@ class Network:
 
         for n in node_elements:
             self.nodes.append(Node(n.getAttribute('pos')))
-    
+   
+
         tracks_elements = train_network_element.getElementsByTagName('tracks')
+        assert(tracks_elements.length == 1)
+        tracks_element = tracks_elements[0]
+
+        track_elements = tracks_element.getElementsByTagName('track')
+
+        # Nodes in the xml file have textical positions, while new Track
+        # elements expect actual Node objects, so create a lookup table.
+        pos2node = {}
+        for n in self.nodes:
+            pos2node[str(n.pos)] = n
+
+        for t in track_elements:
+            a = pos2node[t.getAttribute('a')]
+            b = pos2node[t.getAttribute('b')]
+
+            self.tracks.append(Track(a,b))
 
     def save(self,f):
         """Save the network to file handle f"""

@@ -124,3 +124,46 @@ class TrainsNetworkTest(TestCase):
 
         # compare
         self.assert_(net == net2)
+
+    def testNetworkComparisons(self):
+        """Network == != comparisons work"""
+
+        # One bug was when the two were compared with zip, which meant that if
+        # the second in the comparison simply had no Nodes/Tracks, the
+        # comparison returned true.
+        net = Network()
+        net2 = Network()
+
+        self.assert_(net == net2)
+        self.assert_(not net != net2)
+
+        a1 = net.add_node((0,0))
+
+        self.assert_(net != net2)
+        self.assert_(not net == net2)
+
+        a2 = net2.add_node((0,0))
+
+        self.assert_(net == net2)
+        self.assert_(not net != net2)
+
+
+        b1 = net.add_node((1,0))
+
+        self.assert_(net != net2)
+        self.assert_(not net == net2)
+
+        b2 = net2.add_node((1,0))
+
+        self.assert_(net == net2)
+        self.assert_(not net != net2)
+
+
+        t1 = net.add_track(a1,b1)
+
+        self.assert_(net != net2)
+        self.assert_(not net == net2)
+
+        t2 = net2.add_track(a2,b2)
+        self.assert_(net == net2)
+        self.assert_(not net != net2)
