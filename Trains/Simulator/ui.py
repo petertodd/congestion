@@ -61,7 +61,7 @@ class UserInterface:
         # Draw the trains
         for t in self.network.trains:
             # Calculate what fraction of the total length the train has travelled.
-            f = t.travelled / t.occupying[0].length
+            f = t.travelled / t.occupying[0].length()
 
             # Determine where on the line segment to draw the dot.
             a = t.occupying[0].a.pos

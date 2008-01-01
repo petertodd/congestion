@@ -200,6 +200,8 @@ class Network:
 
         dom = parse(f)
 
+        print dom.getElementsByTagName('train_network')
+
         train_network_elements = dom.getElementsByTagName('train_network')
         assert(train_network_elements.length == 1)
         train_network_element = train_network_elements[0]

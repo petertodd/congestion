@@ -24,8 +24,8 @@ from sys import maxint
 def calc_cost(t):
     """Returns the cost to traverse track t"""
 
-    print str(t.length) + ' ' + str(int(t.traffic))
-    return t.length + int(t.traffic)
+    print str(t.length()) + ' ' + str(int(t.traffic))
+    return t.length() + int(t.traffic)
 
 def pathfind(net,start,end):
     """Find the shortest path from start to end.

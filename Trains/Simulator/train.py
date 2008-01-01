@@ -45,13 +45,13 @@ class Train:
         location.present.append(self)
 
         # Randomize starting position on the track
-        self.travelled = randrange(0,location.length)
+        self.travelled = randrange(0,location.length())
 
         self.target = self.net.nodes[0]
 
     def do(self,delta_t):
         # Have we reached the end of the current track segment?
-        if (self.travelled <= self.occupying[0].length):
+        if (self.travelled <= self.occupying[0].length()):
             # Nope, keep moving.
             self.travelled += delta_t * self.speed
         else:

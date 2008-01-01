@@ -19,6 +19,8 @@
 
 __version__ = "0.0"
 
+import sys
+
 def main(argv):
     """
     Script entry point.
@@ -41,19 +43,18 @@ def main(argv):
 
 
     import ui
-    import network
-    import gen_network
+    from Trains.Simulator.network import *
 
-    network = network.Network((400,400))
-    gen_network.gen_random_network(network)
-    network.add_random_trains(n = 150)
+    net = Network(sys.stdin)
 
-    ui = ui.UserInterface(network,(400,400))
+    net.add_random_trains(n = 150)
+
+    ui = ui.UserInterface(net,(800,600))
 
 
     dt = 0.1
     while True:
-        network.do(dt)
+        net.do(dt)
         ui.do()
         
         import time
