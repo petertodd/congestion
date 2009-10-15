@@ -76,16 +76,16 @@ class Ant:
 
         assert (self.vertex is None and self.edge is not None) or (self.vertex is not None and self.edge is None)
         if self.vertex is not None:
-            print 'on a vertex'
+            #print 'on a vertex'
             neighboring_edges = []
             for e in self.vertex.edges:
-                print 'evaluating',e
+                #print 'evaluating',e
                 if e.start is self.vertex.node and e.direction == 1 and e.nodes[0].ant == None:
                     neighboring_edges.append((e,0))
                 elif e.end is self.vertex.node and e.direction == -1 and e.nodes[-1].ant == None:
                     neighboring_edges.append((e,len(e.nodes) - 1))
             if len(neighboring_edges) == 0:
-                print 'no neighbors'
+                #print 'no neighbors'
                 if random.random() < 0.5:
                     edge_to_switch = random.choice(self.vertex.edges)
                     if edge_to_switch.direction == 1:
@@ -106,7 +106,7 @@ class Ant:
         else:
             new_i = self.edge_i + self.edge.direction
             if 0 <= new_i < len(self.edge.nodes):
-                print self.edge.nodes,new_i
+                #print self.edge.nodes,new_i
                 if self.edge.nodes[new_i].ant is None:
                     self.edge.nodes[self.edge_i].ant = None
                     self.edge_i = new_i
@@ -129,7 +129,8 @@ class Ant:
                     self.vertex = self.edge.end.owner
                     self.edge = None
                 else:
-                    print 'stuck',new_i,self.edge.start.ant,self.edge.end.ant,self
+                    pass
+                    #print 'stuck',new_i,self.edge.start.ant,self.edge.end.ant,self
 
 
 screen.fill((0,0,0))
@@ -216,7 +217,7 @@ def generate_vertex(node):
         edges.append(generate_edge(node,n))
     node.owner.edges = edges
 
-    print edges
+    #print edges
     for e in edges:
         e.end.owner = generate_vertex(e.end)
 
@@ -227,34 +228,35 @@ for n in nodes.itervalues():
         generate_vertex(n)
         break
 
+screen.fill((0,0,0))
+for n in nodes.itervalues():
+    color = led_color_off
+    pygame.draw.circle(screen,led_color_off,(n.x * led_width,n.y * led_width),led_width / 2)
+
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
 
+    random.shuffle(ants)
+    i = 0
     for a in ants:
+        n = None
+        if a.edge:
+            n = a.edge.nodes[a.edge_i]
+        else:
+            n = a.vertex.node
+        pygame.draw.circle(screen,led_color_off,(n.x * led_width,n.y * led_width),led_width / 2)
         a.do()
+        n = None
+        if a.edge:
+            n = a.edge.nodes[a.edge_i]
+        else:
+            n = a.vertex.node
+        pygame.draw.circle(screen,led_color_on,(n.x * led_width,n.y * led_width),led_width / 2)
 
-    screen.fill((0,0,0))
-#    for n in nodes.itervalues():
-#        # draw connecting lines to neighbors
-#        for i in n.neighbors:
-#            pygame.draw.line(screen,(50,50,0),(n.x * led_width,n.y * led_width),(i.x * led_width,i.y * led_width))
-    for n in nodes.itervalues():
-        color = led_color_off
-        
-        if n.ant:
-            color = led_color_on 
-#        elif n.goal:
-#            color = goal_network_colors_r[n.goal]
-#        else:
-#            color = numpy.array(color)
-#            for g in goal_types:
-#                if n.goal_scents.get(g) is not None and n.goal_scents[g] > 0:
-#                    color += (n.goal_scents[g] / 256.0) * numpy.array(goal_network_colors_r[g]) / 2
-#                    n.goal_scents[g] -= 0.1
-        color = (min(255,color[0]),min(255,color[1]),min(255,color[2]))
-        pygame.draw.circle(screen,color,(n.x * led_width,n.y * led_width),led_width / 2)
-    pygame.display.flip()
+        i += 1
+        if i % 10:
+            pygame.display.flip()
 
-    time.sleep(0.1)
+#        time.sleep(0.1 / len(ants))
