@@ -39,6 +39,7 @@ class Node:
         return 'Node(x=%(x)d,y=%(y)d)' % self.__dict__
 nodes = {}
 
+TRAILING_MAX=256
 class Ant:
     def __init__(self,node):
         self.cur_node = node
@@ -47,26 +48,20 @@ class Ant:
 
         self.goal = 'Home'
         self.trailing = None
+        self.trailing_dist = TRAILING_MAX
 
     def do(self):
-        choices = tuple(self.cur_node.neighbors.difference(set((self.last_node,))))
-        cum_choices = []
-        cum = 0
-        new_node = None
-        for i in choices:
-            cum += i.goal_scents.get(self.goal,0) ** 2
-            cum_choices.append(cum)
-        #print choices,cum_choices
-        if cum_choices[-1] == 0:
-            new_node = random.choice(choices)
-        else:
-            p = random.random() * cum_choices[-1]
-            for new_node,cum in zip(choices,cum_choices):
-                if cum > p:
-                    break
+        choices = list(self.cur_node.neighbors.difference(set((self.last_node,))))
+        random.shuffle(choices)
+        new_node = choices[0]
+        for n in choices[1:]:
+            if new_node.goal_scents.get(self.goal,0) < n.goal_scents.get(self.goal,0):
+                new_node = n
 
         if self.trailing is not None:
-            self.cur_node.goal_scents[self.trailing] = min(255,self.cur_node.goal_scents.get(self.trailing,0) + 20)
+            self.trailing_dist -= 1
+            self.trailing_dist = max(self.trailing_dist,self.cur_node.goal_scents.get(self.trailing,0))
+            self.cur_node.goal_scents[self.trailing] = max(self.trailing_dist,self.cur_node.goal_scents.get(self.trailing,0))
 
 
         self.last_node = self.cur_node
@@ -74,10 +69,11 @@ class Ant:
         self.last_node.ant.remove(self) 
         self.cur_node.ant.add(self)
 
-        if self.cur_node.goal == self.goal:
+        if self.cur_node.goal == self.goal or self.trailing_dist == 0:
             self.last_node = self.cur_node # important! we're going back the way we came
             if self.goal in ('Temp','Sound'):
                 self.trailing = self.goal
+                self.trailing_dist = TRAILING_MAX
                 self.goal = 'Home'
             else:
                 self.trailing = 'Home'
