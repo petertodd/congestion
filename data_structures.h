@@ -15,10 +15,10 @@ typedef struct {
 
 // Goals. Using just two goals right now, simple and clean, and good for a horizontal presentaiton.
 #define NUM_GOALS 2
-enum {
+typedef enum {
     Light = 0,
     Dark = 1
-} goal;
+} goal_t;
 
 // The pathfinding functions as a sort of bastardized Dijkstra's, where each
 // ant is performing the distance finding.
@@ -30,9 +30,9 @@ struct ant {
     vertex_idx cur_vertex;
 
     // Current goal and how far away we are from it.
-    enum goal goal;
+    goal_t goal;
     goal_dist_t goal_dist;
-}
+};
 
 
 
@@ -48,11 +48,11 @@ struct ant {
 struct node_rom {
     uint8_t x;
     uint8_t y;
-}
+};
 
 struct node_ram {
     struct ant *ant;
-}
+};
 
 // A vertex is a node that connects edges together.
 //
@@ -62,7 +62,7 @@ struct vertex_rom {
     node_idx node;
 
     edge_idx edges[NUM_VERTEX_EDGES];
-}
+};
 
 // An edge is a list of nodes connecting vertexes.
 //
@@ -76,12 +76,12 @@ struct vertex_rom {
 struct edge_rom {
     uint8_t num_nodes;
     uint16_t nodes[];
-}
+};
 
 struct edge_ram {
     int8_t travel_direction;
     uint8_t ants_present;
 
     // Goal distances by goal type for each end of the edge.
-    goal_dist goal_dists[2][NUM_GOALS];
-}
+    goal_dist_t goal_dists[2][NUM_GOALS];
+};
