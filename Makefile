@@ -11,13 +11,11 @@ ODIR=obj
 
 LIBS=-lm $(ALLEGRO_LDFLAGS)
 
-DEPS = data_structures.h 
-
-_OBJ = main.o 
+_OBJ = main.o display.o world.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
-$(ODIR)/%.o: %.c $(DEPS)
+$(ODIR)/%.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 thesis: $(OBJ)

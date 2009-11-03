@@ -1,6 +1,9 @@
-// (c) 2009 Peter Todd
+// Copyright (c) 2009 Peter Todd
 
-// ROM is reasonably plentiful, RAM is not.
+#ifndef WORLD_H
+#define WORLD_H
+
+#include <stdint.h>
 
 // The actual tables should leave the first entry's unused, so !some_node_idx
 // will behave the same if node indexes are later converted to pointers.
@@ -45,12 +48,10 @@ struct ant {
 //
 // All this can be stored in ROM.
 #define NUM_NODES 2048
-struct node_rom {
+struct node {
     uint8_t x;
     uint8_t y;
-};
 
-struct node_ram {
     struct ant *ant;
 };
 
@@ -58,7 +59,7 @@ struct node_ram {
 //
 // Vertexes are where decisions about which direction to go are made.
 #define NUM_VERTEX_EDGES 4
-struct vertex_rom {
+struct vertex {
     node_idx node;
 
     edge_idx edges[NUM_VERTEX_EDGES];
@@ -73,15 +74,20 @@ struct vertex_rom {
 // Since an ant on an edge will travel every node on the edge (ignoring changes
 // in direction) the edge itself can be the goal.
 #define MAX_VERTEX_NEIGHBORS (4)
-struct edge_rom {
-    uint8_t num_nodes;
-    uint16_t nodes[];
-};
-
-struct edge_ram {
+struct edge {
     int8_t travel_direction;
     uint8_t ants_present;
 
     // Goal distances by goal type for each end of the edge.
     goal_dist_t goal_dists[2][NUM_GOALS];
+
+    uint8_t num_nodes;
+    uint16_t nodes[];
 };
+
+
+void init_world();
+
+void do_world();
+
+#endif
