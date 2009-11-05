@@ -6,7 +6,7 @@ ALLEGRO_LDFLAGS=$(shell allegro-config --libs)
 
 CC=gcc
 INCLUDE=-I.
-CFLAGS=$(INCLUDE) $(SDL_CFLAGS)
+CFLAGS=$(INCLUDE) $(SDL_CFLAGS) -g -Wall
 
 ODIR=obj
 
