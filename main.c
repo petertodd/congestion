@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <world.h>
+#include <display.h>
+
 int main(int argc,char *argv[]){
     init_world();
     init_display();

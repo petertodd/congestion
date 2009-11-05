@@ -5,17 +5,6 @@
 
 #include <stdint.h>
 
-// The actual tables should leave the first entry's unused, so !some_node_idx
-// will behave the same if node indexes are later converted to pointers.
-typedef uint16_t node_idx;
-typedef uint16_t vertex_idx;
-
-typedef struct {
-    unsigned int idx : 8;
-    unsigned int end : 1;
-} edge_idx;
-
-
 // Goals. Using just two goals right now, simple and clean, and good for a horizontal presentaiton.
 #define NUM_GOALS 2
 typedef enum {
@@ -27,10 +16,17 @@ typedef enum {
 // ant is performing the distance finding.
 typedef uint16_t goal_dist_t;
 
+struct edge;
+struct vertex;
+
+struct edge_idx {
+    struct edge *e;
+    uint8_t i;
+};
+
 struct ant {
-    uint16_t cur_edge_i;
-    edge_idx cur_edge;
-    vertex_idx cur_vertex;
+    struct edge_idx cur_edge;
+    struct vertex *cur_vertex;
 
     // Current goal and how far away we are from it.
     goal_t goal;
@@ -47,7 +43,6 @@ struct ant {
 // controllers are available.
 //
 // All this can be stored in ROM.
-#define NUM_NODES 2048
 struct node {
     uint8_t x;
     uint8_t y;
@@ -60,9 +55,9 @@ struct node {
 // Vertexes are where decisions about which direction to go are made.
 #define NUM_VERTEX_EDGES 4
 struct vertex {
-    node_idx node;
+    struct node *node;
 
-    edge_idx edges[NUM_VERTEX_EDGES];
+    struct edge_idx edges[NUM_VERTEX_EDGES];
 };
 
 // An edge is a list of nodes connecting vertexes.
@@ -78,13 +73,16 @@ struct edge {
     int8_t travel_direction;
     uint8_t ants_present;
 
+    struct vertex *start,*end;
+
     // Goal distances by goal type for each end of the edge.
     goal_dist_t goal_dists[2][NUM_GOALS];
 
     uint8_t num_nodes;
-    uint16_t nodes[];
+    struct node *nodes;
 };
 
+#include <network.defs>
 
 void init_world();
 
