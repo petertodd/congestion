@@ -15,6 +15,6 @@ int main(int argc,char *argv[]){
         do_world();
         do_display();
 
-        usleep(10000);
+        usleep(50000);
     }
 }

@@ -14,6 +14,7 @@ typedef enum {
 
 // The pathfinding functions as a sort of bastardized Dijkstra's, where each
 // ant is performing the distance finding.
+#define MAX_GOAL_DIST (65535)
 typedef uint16_t goal_dist_t;
 
 struct edge;
@@ -21,7 +22,7 @@ struct vertex;
 
 struct edge_idx {
     struct edge *e;
-    uint8_t i;
+    int8_t i;
 };
 
 struct ant {
