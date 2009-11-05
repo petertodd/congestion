@@ -32,7 +32,7 @@ void do_display(){
     // Draw nodes owned by edges
     for (i = 0; i < NUM_EDGES; i++){
         last_node = NULL;
-        for (j = 0; j < edges[i].num_nodes; j++){
+        for (j = 0; j < edges[i].length; j++){
             node = &edges[i].nodes[j];
 
             draw_node(node);

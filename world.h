@@ -78,7 +78,7 @@ struct edge {
     // Goal distances by goal type for each end of the edge.
     goal_dist_t goal_dists[2][NUM_GOALS];
 
-    uint8_t num_nodes;
+    uint8_t length;
     struct node *nodes;
 };
 
