@@ -24,7 +24,7 @@ void init_display(){
     clear_to_color(buffer,makecol(0,0,0));
 
     LED_COLOR_ON = makecol(200,0,0);
-    LED_COLOR_OFF = makecol(80,80,80);
+    LED_COLOR_OFF = makecol(30,30,30);
 }
 
 void draw_node(struct node *node){

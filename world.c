@@ -6,7 +6,7 @@
 #include <world.h>
 #include <network.data>
 
-#define NODES_PER_ANT 5
+#define NODES_PER_ANT (5)
 #define NUM_ANTS (NUM_NODES / NODES_PER_ANT)
 
 struct ant ants[NUM_ANTS];
@@ -179,7 +179,7 @@ void init_world(){
 }
 
 void potentially_reverse_travel_direction(struct ant *ant,struct vertex *vertex){
-    if (random() % 100 < 10){
+    if (random() % 100 < 50){
         reverse_travel_direction(ant->cur_edge);
     }
 }
