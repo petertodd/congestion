@@ -5,6 +5,7 @@ import numpy
 import sys
 import random
 import time
+sys.setrecursionlimit(10000)
 
 pygame.init()
 
@@ -69,10 +70,15 @@ class Edge:
 nodes = {}
 
 screen.fill((0,0,0))
+show_progresses = 0
 def show_progress(node,color,dt=0):
     pygame.draw.circle(screen,color,(node.x * led_width,node.y * led_width),led_width / 2)
-    pygame.display.flip()
-    time.sleep(dt)
+    global show_progresses
+    show_progresses += 1
+    if show_progresses > 100:
+        show_progresses = 0
+        pygame.display.flip()
+    #time.sleep(dt)
 
 # generate the map
 pixels = pygame.surfarray.pixels3d(netimg)

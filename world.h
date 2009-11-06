@@ -45,8 +45,8 @@ struct ant {
 //
 // All this can be stored in ROM.
 struct node {
-    uint8_t x;
-    uint8_t y;
+    uint16_t x;
+    uint16_t y;
 
     struct ant *ant;
 };
