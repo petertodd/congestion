@@ -10,13 +10,18 @@
 int LED_COLOR_ON;
 int LED_COLOR_OFF;
 
+BITMAP *buffer;
+
 void init_display(){
     allegro_init();
     install_keyboard();
 
     set_gfx_mode(GFX_AUTODETECT_WINDOWED, WORLD_WIDTH * LED_WIDTH, WORLD_HEIGHT * LED_WIDTH, 0, 0);
 
+    buffer = create_bitmap(WORLD_WIDTH * LED_WIDTH, WORLD_HEIGHT * LED_WIDTH);
+
     clear_to_color(screen,makecol(0,0,0));
+    clear_to_color(buffer,makecol(0,0,0));
 
     LED_COLOR_ON = makecol(200,0,0);
     LED_COLOR_OFF = makecol(80,80,80);
@@ -24,9 +29,9 @@ void init_display(){
 
 void draw_node(struct node *node){
     if (node->ant){
-        ellipsefill(screen,node->x * SCALE,node->y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,LED_COLOR_ON);
+        ellipsefill(buffer,node->x * SCALE,node->y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,LED_COLOR_ON);
     } else {
-        ellipsefill(screen,node->x * SCALE,node->y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,LED_COLOR_OFF);
+        ellipsefill(buffer,node->x * SCALE,node->y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,LED_COLOR_OFF);
     }
 }
 
@@ -43,4 +48,6 @@ void do_display(){
     for (i = 0; i < NUM_VERTEXES; i++){
        draw_node(vertexes[i].node);
     }
+
+    blit(buffer, screen, 0, 0, 0, 0, WORLD_WIDTH * LED_WIDTH, WORLD_HEIGHT * LED_WIDTH);
 }
