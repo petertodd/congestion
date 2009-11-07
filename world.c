@@ -161,9 +161,13 @@ void init_world(){
     k = 0;
     do {
         e.e = &edges[k];
-        for (e.i = random() % ((NUM_NODES - NUM_VERTEXES) / NUM_ANTS); e.i < e.e->length; e.i += random() % ((NUM_NODES - NUM_VERTEXES) / NUM_ANTS)){
+        // The e.i >=0 test is very important. e.i is signed and of limited
+        // range, so a particularly large random increment could make it
+        // negative.
+        for (e.i = random() % e.e->length; e.i < e.e->length && e.i >= 0; e.i += random() % ((NUM_NODES - NUM_VERTEXES) / NUM_ANTS)){
             if (!edge_idxs_node(e)->ant){
                 ants[i].cur_vertex = NULL;
+                ants[i].cur_edge.e = NULL;
 
                 // FIXME: add ant goal initialization
 
