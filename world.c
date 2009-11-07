@@ -162,27 +162,20 @@ void init_world(){
     struct edge_idx e;
     assert(NUM_ANTS < NUM_NODES - NUM_VERTEXES);
     i = 0;
-    k = 0;
     do {
-        e.e = &edges[k];
-        // The e.i >=0 test is very important. e.i is signed and of limited
-        // range, so a particularly large random increment could make it
-        // negative.
-        for (e.i = random() % e.e->length; e.i < e.e->length && e.i >= 0; e.i += random() % ((NUM_NODES - NUM_VERTEXES) / NUM_ANTS)){
-            if (!edge_idxs_node(e)->ant){
-                ants[i].cur_vertex = NULL;
-                ants[i].cur_edge.e = NULL;
+        // This is acceptably efficient as the number of ants will never be a
+        // significant fraction of the number of nodes.
+        e.e = &edges[random() % NUM_EDGES];
+        e.i = random() % e.e->length;
+        if (!edge_idxs_node(e)->ant){
+            ants[i].cur_vertex = NULL;
+            ants[i].cur_edge.e = NULL;
 
-                // FIXME: add ant goal initialization
+            // FIXME: add ant goal initialization
 
-                add_ant_to_edge(&ants[i],e);
-                i++;
-                break;
-            }
+            add_ant_to_edge(&ants[i],e);
+            i++;
         }
-        k++;
-        if (k >= NUM_EDGES)
-            k = 0;
     } while (i < NUM_ANTS);
 }
 
