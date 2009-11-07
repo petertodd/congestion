@@ -95,7 +95,11 @@ int move_ant_to_edge_if_possible(struct ant *ant,struct edge_idx edge){
 
     if (ant->cur_vertex){
         // Vertex to edge
-        if (!edge_idxs_node(edge)->ant){
+        //
+        // Current direction of the edge is important, otherwise the ant will
+        // simply end up back at the vertex by the next move.
+        if (!edge_idxs_node(edge)->ant &&
+            ((edge.i == 0 && edge.e->travel_direction == 1) || (edge.i != 0 && edge.e->travel_direction == -1))){
             remove_ant_from_vertex(ant);
             add_ant_to_edge(ant,edge);
             return 1;
@@ -239,10 +243,30 @@ void do_world(){
             // And try the possibilities sequentially.
             for (j = 0; j < NUM_VERTEX_EDGES; j++){
                 struct edge_idx candidate = ant->cur_vertex->edges[try_order[j]];
-                if (candidate.e &&
-                    ((candidate.i == 0 && candidate.e->travel_direction == 1) || candidate.e->travel_direction == -1) &&
-                    move_ant_to_edge_if_possible(ant,candidate))
+                if (candidate.e && move_ant_to_edge_if_possible(ant,candidate)){
                     break;
+                }
+            }
+            if (j >= NUM_VERTEX_EDGES){
+                // We're stuck at a vertex. Either there are ants surrounding
+                // us, or potentially each edge going here has a travel
+                // direction towards us.
+                //
+                // Look for vertexes without ants on them, and reverse their
+                // direction.
+                //
+                // Another option would be to have ants ignore the travel
+                // directions when there are no ants present on the edge,
+                // however with random wandering ants it looks better if they
+                // mostly follow the directions, otherwise often they'll go
+                // right back from where they came upon entering a vertex.
+                for (j = 0; j < NUM_VERTEX_EDGES; j++){
+                    struct edge_idx candidate = ant->cur_vertex->edges[try_order[j]];
+                    if (candidate.e && !edge_idxs_node(candidate)->ant){
+                        reverse_travel_direction(candidate);
+                        break;
+                    }
+                }
             }
         }
     }
