@@ -27,11 +27,11 @@ void init_display(){
     LED_COLOR_OFF = makecol(30,30,30);
 }
 
-void draw_node(struct node *node){
+void draw_node(struct node *node,int n){
     if (node->ant){
         ellipsefill(buffer,node->x * SCALE,node->y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,LED_COLOR_ON);
     } else {
-        ellipsefill(buffer,node->x * SCALE,node->y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,LED_COLOR_OFF);
+        ellipsefill(buffer,node->x * SCALE,node->y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,makecol(n + 30,n + 30,n + 30));
     }
 }
 
@@ -40,13 +40,17 @@ void do_display(){
     // Draw nodes owned by edges
     for (i = 0; i < NUM_EDGES; i++){
         for (j = 0; j < edges[i].length; j++){
-            draw_node(&edges[i].nodes[j]);
+            if (edges[i].travel_direction == 1){
+                draw_node(&edges[i].nodes[j],(50.0 / edges[i].length) * j);
+            } else {
+                draw_node(&edges[i].nodes[j],50 - ((50.0 / edges[i].length) * j));
+            }
         }
     }
 
     // Draw nodes owned by vertexes
     for (i = 0; i < NUM_VERTEXES; i++){
-       draw_node(vertexes[i].node);
+       draw_node(vertexes[i].node,0);
     }
 
     blit(buffer, screen, 0, 0, 0, 0, WORLD_WIDTH * LED_WIDTH, WORLD_HEIGHT * LED_WIDTH);
