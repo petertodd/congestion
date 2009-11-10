@@ -14,7 +14,7 @@ int main(int argc,char *argv[]){
     init_world();
     init_display();
 
-    while (!(keypressed())){
+    while (1){
         do_world();
         do_display();
 

@@ -27,30 +27,61 @@ void init_display(){
     LED_COLOR_OFF = makecol(30,30,30);
 }
 
-void draw_node(struct node *node,int n){
-    if (node->ant){
-        ellipsefill(buffer,node->x * SCALE,node->y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,LED_COLOR_ON);
-    } else {
-        ellipsefill(buffer,node->x * SCALE,node->y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,makecol(n + 30,n + 30,n + 30));
-    }
+void draw_node(struct node *node,int color){
+    ellipsefill(buffer,node->x * SCALE,node->y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,color);
 }
 
 void do_display(){
-    int i,j;
+    int i,j,color;
+    static enum {
+        DEFAULT,
+        TRAVEL_DIRECTIONS
+    } display_mode = DEFAULT;
+
+    if (keypressed()){
+        int key = 0xff & readkey();
+        switch (key) {
+            case 'q':
+                exit(0);
+            case 'd':
+                display_mode = DEFAULT;
+                break;
+            case 't':
+                display_mode = TRAVEL_DIRECTIONS;
+                break;
+        }
+    }
+
+
     // Draw nodes owned by edges
     for (i = 0; i < NUM_EDGES; i++){
         for (j = 0; j < edges[i].length; j++){
-            if (edges[i].travel_direction == 1){
-                draw_node(&edges[i].nodes[j],(50.0 / edges[i].length) * j);
-            } else {
-                draw_node(&edges[i].nodes[j],50 - ((50.0 / edges[i].length) * j));
-            }
+            switch (display_mode) {
+                case TRAVEL_DIRECTIONS:
+                    if (edges[i].travel_direction == 1){
+                        color = (50.0 / edges[i].length) * j;
+                    } else {
+                        color = 50 - ((50.0 / edges[i].length) * j);
+                    }
+                    color += 30;
+                    color = makecol(color,color,color);
+                    break;
+                default:
+                    color = LED_COLOR_OFF;
+            };
+
+            // Ants always show up
+            if (edges[i].nodes[j].ant)
+                color = LED_COLOR_ON;
+
+            draw_node(&edges[i].nodes[j],color);
         }
     }
 
     // Draw nodes owned by vertexes
     for (i = 0; i < NUM_VERTEXES; i++){
-       draw_node(vertexes[i].node,0);
+        color = vertexes[i].node->ant ? LED_COLOR_ON : LED_COLOR_OFF;
+        draw_node(vertexes[i].node,color);
     }
 
     blit(buffer, screen, 0, 0, 0, 0, WORLD_WIDTH * LED_WIDTH, WORLD_HEIGHT * LED_WIDTH);
