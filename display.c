@@ -1,6 +1,6 @@
 // Copyright (c) 2009 Peter Todd
 
-#include <stdio.h>
+#include <common.h>
 #include <allegro.h>
 #include <world.h>
 

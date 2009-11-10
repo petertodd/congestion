@@ -1,7 +1,5 @@
 // Copyright (c) 2009 Peter Todd
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
+#include <common.h>
 
 #include <world.h>
 #include <network.data>
