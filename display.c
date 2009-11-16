@@ -16,6 +16,7 @@ void init_display(){
     allegro_init();
     install_keyboard();
 
+    set_color_depth(32);
     set_gfx_mode(GFX_AUTODETECT_WINDOWED, WORLD_WIDTH * LED_WIDTH, WORLD_HEIGHT * LED_WIDTH, 0, 0);
 
     buffer = create_bitmap(WORLD_WIDTH * LED_WIDTH, WORLD_HEIGHT * LED_WIDTH);
