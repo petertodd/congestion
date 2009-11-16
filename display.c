@@ -36,7 +36,8 @@ void do_display(){
     int i,j,color;
     static enum {
         DEFAULT,
-        TRAVEL_DIRECTIONS
+        TRAVEL_DIRECTIONS,
+        GOALS
     } display_mode = DEFAULT;
 
     if (keypressed()){
@@ -49,6 +50,9 @@ void do_display(){
                 break;
             case 't':
                 display_mode = TRAVEL_DIRECTIONS;
+                break;
+            case 'g':
+                display_mode = GOALS;
                 break;
         }
     }
@@ -67,13 +71,22 @@ void do_display(){
                     color += 30;
                     color = makecol(color,color,color);
                     break;
+                case GOALS:
+                    color = makecol((double)edges[i].nodes[j].goal_dists[0] / (double)MAX_GOAL_DIST_IN_NETWORK * 128.0,0,
+                                    (double)edges[i].nodes[j].goal_dists[1] / (double)MAX_GOAL_DIST_IN_NETWORK * 128.0);
+                    break;
                 default:
                     color = LED_COLOR_OFF;
             };
 
             // Ants always show up
-            if (edges[i].nodes[j].ant)
-                color = LED_COLOR_ON;
+            if (edges[i].nodes[j].ant){
+                if (display_mode == GOALS){
+                    color = edges[i].nodes[j].ant->goal ? makecol(200,0,0) : makecol(0,0,250);
+                } else {
+                    color = LED_COLOR_ON;
+                }
+            }
 
             draw_node(&edges[i].nodes[j],color);
         }
@@ -81,7 +94,15 @@ void do_display(){
 
     // Draw nodes owned by vertexes
     for (i = 0; i < NUM_VERTEXES; i++){
-        color = vertexes[i].node->ant ? LED_COLOR_ON : LED_COLOR_OFF;
+        if (vertexes[i].node->ant){
+            if (display_mode == GOALS){
+                color = vertexes[i].node->ant->goal ? makecol(200,0,0) : makecol(0,0,250);
+            } else {
+                color = LED_COLOR_ON;
+            }
+        } else {
+            color = LED_COLOR_OFF;
+        }
         draw_node(vertexes[i].node,color);
     }
 

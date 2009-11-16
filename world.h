@@ -47,6 +47,9 @@ struct node {
     uint16_t y;
 
     struct ant *ant;
+
+    // Temporary to make display code simple
+    int goal_dists[NUM_GOALS];
 };
 
 // A vertex is a node that connects edges together.

@@ -116,6 +116,7 @@ for x in range(1,xsize - 1):
             #    nodes[(x,y)].goal = goal_network_colors[pixel]
 
 # compute goal distances with Dijkstra's algorithm
+max_goal_dist_in_network = 0
 def pathfind(node,goal,best):
     from collections import deque
     stack = deque(((node,0),))
@@ -129,6 +130,8 @@ def pathfind(node,goal,best):
 
         if node.goal_dists.get(goal,best + 1) > best:
             node.goal_dists[goal] = best
+            global max_goal_dist_in_network
+            max_goal_dist_in_network = max(max_goal_dist_in_network,best)
 
             for n in find_node_neighbors(node):
                 show_progress(n,(0,100,0))
@@ -262,7 +265,10 @@ for n in nodes.itervalues():
 
 node_lines = []
 def add_node_to_node_lines(n,comment = ''):
-    node_lines.append('{%d,%d,0}, // #%d %s' % (n.x,n.y,len(node_lines),comment))
+    node_lines.append('{%d,%d,0,{%d,%d}}, // #%d %s' % \
+            (n.x,n.y,
+             n.goal_dists['Light'],n.goal_dists['Dark'],
+             len(node_lines),comment))
 
 # The vertex generation code refers to the edges table later on, so keep a map
 # of edge indexes by edge so it can generate the required pointers.
@@ -335,6 +341,7 @@ print >>fd_defs,\
 #define NUM_NODES (%(num_nodes)d)
 #define NUM_EDGES (%(num_edges)d)
 #define NUM_VERTEXES (%(num_vertexes)d)
+#define MAX_GOAL_DIST_IN_NETWORK (%(max_goal_dist_in_network)d)
 
 extern struct node nodes[];
 extern struct edge edges[];
@@ -343,7 +350,8 @@ extern struct vertex vertexes[];
        'world_height':ysize,
        'num_nodes':len(nodes),
        'num_edges':len(edges),
-       'num_vertexes':len(vertexes)
+       'num_vertexes':len(vertexes),
+       'max_goal_dist_in_network':max_goal_dist_in_network,
       }
 
 print >>fd_data,\
