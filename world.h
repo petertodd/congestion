@@ -5,15 +5,14 @@
 
 #include <stdint.h>
 
-// Goals. Using just two goals right now, simple and clean, and good for a horizontal presentaiton.
+// Goals. Using just two goals right now, simple and clean, and good for a
+// horizontal presentaiton.
 #define NUM_GOALS 2
 typedef enum {
     Light = 0,
     Dark = 1
 } goal_t;
 
-// The pathfinding functions as a sort of bastardized Dijkstra's, where each
-// ant is performing the distance finding.
 #define MAX_GOAL_DIST (65535)
 typedef uint16_t goal_dist_t;
 
@@ -29,9 +28,8 @@ struct ant {
     struct edge_idx cur_edge;
     struct vertex *cur_vertex;
 
-    // Current goal and how far away we are from it.
+    // Current goal
     goal_t goal;
-    goal_dist_t goal_dist;
 };
 
 
@@ -59,6 +57,9 @@ struct vertex {
     struct node *node;
 
     struct edge_idx edges[NUM_VERTEX_EDGES];
+
+    // Distances to each goal, and the edges that get you there.
+    goal_dist_t goal_dists[NUM_GOALS][NUM_VERTEX_EDGES];
 };
 
 // An edge is a list of nodes connecting vertexes.
@@ -75,9 +76,6 @@ struct edge {
     uint8_t ants_present;
 
     struct vertex *start,*end;
-
-    // Goal distances by goal type for each end of the edge.
-    goal_dist_t goal_dists[2][NUM_GOALS];
 
     uint8_t length;
     struct node *nodes;

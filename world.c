@@ -5,7 +5,7 @@
 #include <network.data>
 
 #define NODES_PER_ANT (5)
-#define NUM_ANTS (NUM_NODES / NODES_PER_ANT)
+#define NUM_ANTS 100 //(NUM_NODES / NODES_PER_ANT)
 
 struct ant ants[NUM_ANTS];
 
@@ -96,8 +96,15 @@ int move_ant_to_edge_if_possible(struct ant *ant,struct edge_idx edge){
         //
         // Current direction of the edge is important, otherwise the ant will
         // simply end up back at the vertex by the next move.
+        //
+        // However, as a special case if an edge doesn't have any ants on it,
+        // simply change the direction to match where we are trying to go.
         if (!edge_idxs_node(edge)->ant &&
-            ((edge.i == 0 && edge.e->travel_direction == 1) || (edge.i != 0 && edge.e->travel_direction == -1))){
+            (((edge.i == 0 && edge.e->travel_direction == 1) || (edge.i != 0 && edge.e->travel_direction == -1)) ||
+             !edge.e->ants_present)){
+            // Set travel direction to the direction we're going in, to
+            // acommodate the special case of no ants present on the edge.
+            edge.e->travel_direction = edge.i == 0 ? 1 : -1;
             remove_ant_from_vertex(ant);
             add_ant_to_edge(ant,edge);
             return 1;
@@ -122,7 +129,12 @@ int move_ant_to_edge_if_possible(struct ant *ant,struct edge_idx edge){
 }
 
 void init_world(){
-    int i,j,k;
+    int i,k;
+
+    printf("sizeof(nodes) = %ld sizeof(edges) = %ld sizeof(vertexes) = %ld sizeof(ants) = %ld total = %ld\n",
+            sizeof(nodes),sizeof(edges),sizeof(vertexes),sizeof(ants),
+            sizeof(nodes) + sizeof(edges) + sizeof(vertexes) + sizeof(ants));
+
     for (i = 0; i < NUM_NODES; i++){
         nodes[i].ant = NULL;
     }
@@ -138,11 +150,6 @@ void init_world(){
         // Do initialization while we're at it
         edges[i].travel_direction = random() % 2 ? 1 : -1;
         edges[i].ants_present = 0;
-        for (j = 0; j < 2; j++){
-            for (k = 0; k < NUM_GOALS; k++){
-                edges[i].goal_dists[j][k] = MAX_GOAL_DIST;
-            }
-        }
     }
     for (i = 0; i < NUM_VERTEXES; i++){
         vertexes[i].node = &nodes[(long)vertexes[i].node];
@@ -170,6 +177,7 @@ void init_world(){
             ants[i].cur_edge.e = NULL;
 
             // FIXME: add ant goal initialization
+            ants[i].goal = random() % NUM_GOALS;
 
             add_ant_to_edge(&ants[i],e);
             i++;
@@ -219,18 +227,27 @@ void do_world(){
                 }
             }
         } else {
-            // Ant is on a vertex node, choose a non-blocked edge to move to.
+            // Ant is on a vertex node, choose a non-blocked edge to move to,
+            // with preference for edges leading us to our goals.
             //
-            // First create a randomized try order, so as to not introduce
-            // bias.
+            // First create a try_order() sorted by goal distance.
             assert(NUM_VERTEX_EDGES == 4);
             int try_order[] = {0,1,2,3};
-            for (j = 0; j < NUM_VERTEX_EDGES; j++){
-                int tmp = try_order[j];
-                int k = random() % NUM_VERTEX_EDGES;
-                try_order[j] = try_order[k];
-                try_order[k] = tmp;
-            }
+            int sorted;
+            // Bubble-sort!
+            do {
+                sorted = 1;
+                for (j = 0; j < NUM_VERTEX_EDGES - 1; j++){
+                    if (ant->cur_vertex->goal_dists[ant->goal][try_order[j]] > ant->cur_vertex->goal_dists[ant->goal][try_order[j + 1]]){
+                        sorted = 0;
+                        // swap
+                        int tmp;
+                        tmp = try_order[j + 1];
+                        try_order[j + 1] = try_order[j];
+                        try_order[j] = tmp;
+                    }
+                }
+            } while (!sorted);
             // And try the possibilities sequentially.
             for (j = 0; j < NUM_VERTEX_EDGES; j++){
                 struct edge_idx candidate = ant->cur_vertex->edges[try_order[j]];
@@ -239,25 +256,12 @@ void do_world(){
                 }
             }
             if (j >= NUM_VERTEX_EDGES){
-                // We're stuck at a vertex. Either there are ants surrounding
-                // us, or potentially each edge going here has a travel
-                // direction towards us.
-                //
-                // Look for vertexes without ants on them, and reverse their
-                // direction.
-                //
-                // Another option would be to have ants ignore the travel
-                // directions when there are no ants present on the edge,
-                // however with random wandering ants it looks better if they
-                // mostly follow the directions, otherwise often they'll go
-                // right back from where they came upon entering a vertex.
-                for (j = 0; j < NUM_VERTEX_EDGES; j++){
-                    struct edge_idx candidate = ant->cur_vertex->edges[try_order[j]];
-                    if (candidate.e && !edge_idxs_node(candidate)->ant){
-                        reverse_travel_direction(candidate);
-                        break;
-                    }
-                }
+                // We're stuck at a vertex. Given that the
+                // move_ant_to_edge_if_possible() will reverse the direction of
+                // the edge if there are no ants on it we can be sure this is
+                // because we're surrounded by ants. Do nothing, although in
+                // the future 'hydraulics' should be implemented so the edge
+                // with the most ants 'pushing' has priority.
             }
         }
     }

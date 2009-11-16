@@ -26,6 +26,9 @@ goal_types = ('Light','Dark')
 goal_network_colors = {(255,0,0):'Light',
                        (0,0,255):'Dark'}
 
+MAX_VERTEX_EDGES = 4
+MAX_GOAL_DIST = 2**16-1
+
 goal_network_colors_r = {}
 for key,val in goal_network_colors.iteritems():
     goal_network_colors_r[val] = key
@@ -33,11 +36,14 @@ print >>sys.stderr,goal_network_colors,goal_network_colors_r
 
 class Node:
     """An ant is always on a node"""
-    def __init__(self,x,y):
+    def __init__(self,x,y,goal = None):
         self.x = x
         self.y = y
 
         self.owner = None
+
+        self.goal_dists = {}
+        self.goal = goal
 
     def __repr__(self):
         return 'Node(x=%(x)d,y=%(y)d)' % self.__dict__
@@ -80,23 +86,6 @@ def show_progress(node,color,dt=0):
         pygame.display.flip()
     #time.sleep(dt)
 
-# generate the map
-pixels = pygame.surfarray.pixels3d(netimg)
-for x in range(1,xsize - 1):
-    for y in range(1,ysize - 1):
-        pixel = pixels[x][y]
-        if pixel:
-            nodes[(x,y)] = Node(x,y)
-            show_progress(nodes[(x,y)],(20,20,20),0)
-            # pixel = tuple(pixel)
-            # The above doesn't work, as the individual elements of the array,
-            # are arrays as well it seems.
-            #pixel = (int(pixel[0]),int(pixel[1]),int(pixel[2]))
-            #if goal_network_colors.get(pixel) is not None:
-            #    nodes[(x,y)].goal = goal_network_colors[pixel]
-
-
-
 def find_node_neighbors(node):
     r = set()
     # prefer horizontal and vertical neighbors
@@ -105,6 +94,50 @@ def find_node_neighbors(node):
         if j is not None:
             r.add(j)
     return r
+
+# generate the map
+pixels = pygame.surfarray.pixels3d(netimg)
+for x in range(1,xsize - 1):
+    for y in range(1,ysize - 1):
+        pixel = pixels[x][y]
+        if pixel:
+            goal = None
+            if pixel[0] == 255:
+                goal = 'Light'
+            elif pixel[2] == 255:
+                goal = 'Dark'
+            nodes[(x,y)] = Node(x,y,goal)
+            show_progress(nodes[(x,y)],(20,20,20),0)
+            # pixel = tuple(pixel)
+            # The above doesn't work, as the individual elements of the array,
+            # are arrays as well it seems.
+            #pixel = (int(pixel[0]),int(pixel[1]),int(pixel[2]))
+            #if goal_network_colors.get(pixel) is not None:
+            #    nodes[(x,y)].goal = goal_network_colors[pixel]
+
+# compute goal distances with Dijkstra's algorithm
+def pathfind(node,goal,best):
+    from collections import deque
+    stack = deque(((node,0),))
+
+    while len(stack):
+        (node,best) = stack.popleft()
+
+        lights = min(255,node.goal_dists.get('Light',best + 1 if goal == 'Light' else 0) / 5)
+        darks = min(255,node.goal_dists.get('Dark',best + 1 if goal == 'Dark' else 0) / 5)
+        show_progress(node,(lights,0,darks))
+
+        if node.goal_dists.get(goal,best + 1) > best:
+            node.goal_dists[goal] = best
+
+            for n in find_node_neighbors(node):
+                show_progress(n,(0,100,0))
+                stack.append((n,best + 1))
+
+for n in nodes.itervalues():
+    if n.goal is not None:
+        print 'pathfinding, starting at',n,'for',n.goal
+        pathfind(n,n.goal,0)
 
 
 def generate_edge(start,next):
@@ -225,9 +258,6 @@ for n in nodes.itervalues():
 # AAAAABBBBCCCDD
 #
 # Where edge A has five nodes in it, B four nodes etc.
-#
-#
-#
 
 
 node_lines = []
@@ -252,7 +282,7 @@ for e in edges:
     # known string comprising the edge line. Later, after the vertex_lines
     # generation, we'll resolve those.
     edge_lines.append(\
-            ('{0,0,(struct vertex *)',e.start,',(struct vertex *)',e.end,',{{65535,65535},{65535,65535}},%d,(struct node *)%d}, // #%d' \
+            ('{0,0,(struct vertex *)',e.start,',(struct vertex *)',e.end,',%d,(struct node *)%d}, // #%d' \
                 % (len(e.nodes),beginning_of_this_edges_nodes,len(edge_lines))))
 
 vertex_lines = []
@@ -263,11 +293,27 @@ for v in vertexes:
     # pad with null's
     v_edges_idx_list.extend([(0,2**8-1) for i in range(0,4 - len(v_edges_idx_list))])
 
+    # Generate the goal distances part of the vertexes structure.
+    goal_dists = ['{']
+    for goal in goal_types:
+        goal_dists.append('{')
+        for (edge,idx) in v.edges:
+            node = edge.nodes[idx]
+            goal_dists.append('%s,' % node.goal_dists[goal])
+        # Need to fill in values if not all the edges are used to keep the
+        # pathfinding code simple.
+        for nonexistant in range(0,MAX_VERTEX_EDGES - len(v.edges)):
+            goal_dists.append('%s,' % MAX_GOAL_DIST)
+        goal_dists.append('},')
+    goal_dists.append('}')
+    goal_dists = ''.join(goal_dists)
+
     vertex_idxs_by_vertex[v] = len(vertex_lines)
     vertex_lines.append(\
-            '{(struct node *)%d,{%s}}, // #%d' \
-            % (len(node_lines),\
+            '{(struct node *)%d,{%s},%s}, // #%d' \
+            % (len(node_lines), # we're just about to add the node owned by this vertex
                ','.join(['{(struct edge *)%d,%d}' % (e,i) for e,i in v_edges_idx_list]),
+               goal_dists,
                len(vertex_lines)))
     add_node_to_node_lines(v.node,'Vertex %d' % (len(vertex_lines) - 1))
 
