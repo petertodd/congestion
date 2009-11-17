@@ -265,7 +265,7 @@ for n in nodes.itervalues():
 
 node_lines = []
 def add_node_to_node_lines(n,comment = ''):
-    node_lines.append('{%d,%d,0,{%d,%d}}, // #%d %s' % \
+    node_lines.append('{%d,%d,{%d,%d}}, // #%d %s' % \
             (n.x,n.y,
              n.goal_dists['Light'],n.goal_dists['Dark'],
              len(node_lines),comment))
@@ -288,7 +288,7 @@ for e in edges:
     # known string comprising the edge line. Later, after the vertex_lines
     # generation, we'll resolve those.
     edge_lines.append(\
-            ('{0,0,(struct vertex *)',e.start,',(struct vertex *)',e.end,',%d,(struct node *)%d}, // #%d' \
+            ('{(struct vertex *)',e.start,',(struct vertex *)',e.end,',%d,(struct node *)%d}, // #%d' \
                 % (len(e.nodes),beginning_of_this_edges_nodes,len(edge_lines))))
 
 vertex_lines = []

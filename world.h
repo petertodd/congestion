@@ -33,7 +33,6 @@ struct ant {
 };
 
 
-
 // An individual led that an ant may be on. Only one ant may be present on a
 // node at any time.
 //
@@ -43,13 +42,17 @@ struct ant {
 //
 // All this can be stored in ROM.
 struct node {
+    // Fixed data
     uint16_t x;
     uint16_t y;
 
-    struct ant *ant;
-
     // Temporary to make display code simple
     int goal_dists[NUM_GOALS];
+
+
+    // Volatile data
+
+    struct ant *ant;
 };
 
 // A vertex is a node that connects edges together.
@@ -57,12 +60,15 @@ struct node {
 // Vertexes are where decisions about which direction to go are made.
 #define NUM_VERTEX_EDGES 4
 struct vertex {
+    // Fixed data
     struct node *node;
 
     struct edge_idx edges[NUM_VERTEX_EDGES];
 
     // Distances to each goal, and the edges that get you there.
     goal_dist_t goal_dists[NUM_GOALS][NUM_VERTEX_EDGES];
+
+    // Currently no volatile data
 };
 
 // An edge is a list of nodes connecting vertexes.
@@ -75,13 +81,15 @@ struct vertex {
 // in direction) the edge itself can be the goal.
 #define MAX_VERTEX_NEIGHBORS (4)
 struct edge {
-    int8_t travel_direction;
-    uint8_t ants_present;
-
+    // Fixed data
     struct vertex *start,*end;
 
     uint8_t length;
     struct node *nodes;
+
+    // Volatile data
+    int8_t travel_direction;
+    uint8_t ants_present;
 };
 
 #include <network.defs>
