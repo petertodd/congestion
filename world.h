@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 
+#include <network.defs>
+
 // Goals. Using just two goals right now, simple and clean, and good for a
 // horizontal presentaiton.
 #define NUM_GOALS 2
@@ -13,24 +15,22 @@ typedef enum {
     Dark = 1
 } goal_t;
 
-#define MAX_GOAL_DIST (65535)
 typedef uint16_t goal_dist_t;
+typedef uint16_t node_idx_t;
+typedef uint16_t ant_idx_t;
 
-struct edge;
-struct vertex;
-
-struct edge_idx {
-    struct edge *e;
-    int8_t i;
-};
+#define INVALID_ANT_IDX (65535)
 
 struct ant {
-    struct edge_idx cur_edge;
-    struct vertex *cur_vertex;
+    node_idx_t cur_node;
 
     // Current goal
     goal_t goal;
+
+    // How far we we have travelled trying to get to our current goal.
+    int16_t distance_travelled;
 };
+extern struct ant ants[];
 
 
 // An individual led that an ant may be on. Only one ant may be present on a
@@ -39,60 +39,22 @@ struct ant {
 // The nodes really refers to which led we want to light up, so "x" and "y"
 // could be something like chip select and index, especially given that 256 led
 // controllers are available.
-//
-// All this can be stored in ROM.
 struct node {
     // Fixed data
     uint16_t x;
     uint16_t y;
 
-    // Temporary to make display code simple
-    int goal_dists[NUM_GOALS];
+    // Neighboring nodes
+    node_idx_t neighbors[MAX_NODE_NEIGHBORS];
 
-
-    // Volatile data
-
-    struct ant *ant;
-};
-
-// A vertex is a node that connects edges together.
-//
-// Vertexes are where decisions about which direction to go are made.
-#define NUM_VERTEX_EDGES 4
-struct vertex {
-    // Fixed data
-    struct node *node;
-
-    struct edge_idx edges[NUM_VERTEX_EDGES];
-
-    // Distances to each goal, and the edges that get you there.
-    goal_dist_t goal_dists[NUM_GOALS][NUM_VERTEX_EDGES];
-
-    // Currently no volatile data
-};
-
-// An edge is a list of nodes connecting vertexes.
-//
-// Importantly, an edge has the idea of both how many ants are present along
-// it, and a direction of travel.
-//
-// Edges are also goal locations, generalizing the idea of nodes being goals.
-// Since an ant on an edge will travel every node on the edge (ignoring changes
-// in direction) the edge itself can be the goal.
-#define MAX_VERTEX_NEIGHBORS (4)
-struct edge {
-    // Fixed data
-    struct vertex *start,*end;
-
-    uint8_t length;
-    struct node *nodes;
+    int16_t goal_dists[NUM_GOALS];
 
     // Volatile data
-    int8_t travel_direction;
-    uint8_t ants_present;
-};
+    ant_idx_t ant;
 
-#include <network.defs>
+    int16_t frustration[NUM_GOALS];
+};
+extern struct node nodes[];
 
 void init_world();
 

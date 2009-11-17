@@ -26,17 +26,26 @@ goal_types = ('Light','Dark')
 goal_network_colors = {(255,0,0):'Light',
                        (0,0,255):'Dark'}
 
-MAX_VERTEX_EDGES = 4
+MAX_NODE_NEIGHBORS = 8
 MAX_GOAL_DIST = 2**16-1
+INVALID_NODE_IDX = 2**16-1
 
 goal_network_colors_r = {}
 for key,val in goal_network_colors.iteritems():
     goal_network_colors_r[val] = key
 print >>sys.stderr,goal_network_colors,goal_network_colors_r
 
+nodes = []
+nodes_by_xy = {}
+
+max_node_idx = -1
 class Node:
     """An ant is always on a node"""
     def __init__(self,x,y,goal = None):
+        global max_node_idx
+        max_node_idx += 1
+        self.idx = max_node_idx
+
         self.x = x
         self.y = y
 
@@ -45,35 +54,22 @@ class Node:
         self.goal_dists = {}
         self.goal = goal
 
+        self.neighbors = None
+
+        nodes.append(self)
+        nodes_by_xy[(self.x,self.y)] = self
+
+    def find_neighbors(self):
+        if self.neighbors is None:
+            self.neighbors = set()
+            for dx,dy in ((0,-1),(1,0),(0,1),(-1,0),(-1,-1),(1,-1),(1,1),(-1,1)):
+                j = nodes_by_xy.get((self.x - dx,self.y - dy))
+                if j is not None:
+                    self.neighbors.add(j)
+        return self.neighbors 
+
     def __repr__(self):
         return 'Node(x=%(x)d,y=%(y)d)' % self.__dict__
-
-vertexes = []
-class Vertex:
-    """A node with choices of edges to go to"""
-    def __init__(self,node,edges):
-        self.node = node
-
-        # direction,edge
-        self.edges = edges
-
-        vertexes.append(self)
-
-edges = []
-class Edge:
-    """A series of Nodes, connected to vertexes at either end"""
-    def __init__(self,start,nodes,end):
-        self.nodes = nodes
-        # note, start and end refer to the nodes themselves, their owner gets you the vertexes
-        self.start = start
-        self.end = end
-
-        # Direction of travel
-        self.direction = 1
-
-        edges.append(self)
-
-nodes = {}
 
 screen.fill((0,0,0))
 show_progresses = 0
@@ -86,14 +82,6 @@ def show_progress(node,color,dt=0):
         pygame.display.flip()
     #time.sleep(dt)
 
-def find_node_neighbors(node):
-    r = set()
-    # prefer horizontal and vertical neighbors
-    for dx,dy in ((0,-1),(1,0),(0,1),(-1,0)):
-        j = nodes.get((node.x - dx,node.y - dy))
-        if j is not None:
-            r.add(j)
-    return r
 
 # generate the map
 pixels = pygame.surfarray.pixels3d(netimg)
@@ -106,14 +94,17 @@ for x in range(1,xsize - 1):
                 goal = 'Light'
             elif pixel[2] == 255:
                 goal = 'Dark'
-            nodes[(x,y)] = Node(x,y,goal)
-            show_progress(nodes[(x,y)],(20,20,20),0)
+            nodes_by_xy[(x,y)] = Node(x,y,goal)
+            show_progress(nodes_by_xy[(x,y)],(20,20,20),0)
             # pixel = tuple(pixel)
             # The above doesn't work, as the individual elements of the array,
             # are arrays as well it seems.
             #pixel = (int(pixel[0]),int(pixel[1]),int(pixel[2]))
             #if goal_network_colors.get(pixel) is not None:
-            #    nodes[(x,y)].goal = goal_network_colors[pixel]
+            #    nodes_by_xy[(x,y)].goal = goal_network_colors[pixel]
+
+for n in nodes:
+    n.find_neighbors()
 
 # compute goal distances with Dijkstra's algorithm
 max_goal_dist_in_network = 0
@@ -124,115 +115,26 @@ def pathfind(node,goal,best):
     while len(stack):
         (node,best) = stack.popleft()
 
-        lights = min(255,node.goal_dists.get('Light',best + 1 if goal == 'Light' else 0) / 5)
-        darks = min(255,node.goal_dists.get('Dark',best + 1 if goal == 'Dark' else 0) / 5)
-        show_progress(node,(lights,0,darks))
+        # lights = min(255,node.goal_dists.get('Light',best + 1 if goal == 'Light' else 0) / 5)
+        # darks = min(255,node.goal_dists.get('Dark',best + 1 if goal == 'Dark' else 0) / 5)
+        # show_progress(node,(lights,0,darks))
 
         if node.goal_dists.get(goal,best + 1) > best:
             node.goal_dists[goal] = best
             global max_goal_dist_in_network
             max_goal_dist_in_network = max(max_goal_dist_in_network,best)
 
-            for n in find_node_neighbors(node):
-                show_progress(n,(0,100,0))
+            for n in node.neighbors:
+                # show_progress(n,(0,100,0))
                 stack.append((n,best + 1))
 
-for n in nodes.itervalues():
+for n in nodes:
     if n.goal is not None:
         print 'pathfinding, starting at',n,'for',n.goal
         pathfind(n,n.goal,0)
 
-
-def generate_edge(start,next):
-    # start is the vertex that is generating us, next is the next node in the
-    # trail.
-    assert isinstance(start,Vertex)
-    assert next.owner is None
-
-    # Edges should have at least one node in them, directly connecting a vertex
-    # to a vertex is not allowed. Therefor next should have exactly two neighbors.
-    assert len(find_node_neighbors(next)) == 2
-
-    # The start vertex is known, create the edge and assign it to the start
-    # vertexes edge list.
-    edge = Edge(start,[],None)
-    start.edges.append((edge,0))
-
-    prev = start.node
-    while True:
-        neighbors = find_node_neighbors(next)
-        if len(neighbors) != 2:
-            break
-
-        show_progress(next,(75, 0, 0))
-
-        next.owner = edge
-        edge.nodes.append(next)
-
-        # Next edge is the neighbor that was not the previous edge
-        cur = next
-        next = find_node_neighbors(cur).difference(set((prev,))).pop()
-        prev = cur
-
-    # Detect dead ends
-    assert len(neighbors) > 2
-
-    assert len(edge.nodes) > 0
-
-    # Should be impossible to have a node with more than 2 neighbors be owned
-    # by an edge.
-    assert not isinstance(next.owner,Edge)
-
-    # Must be at a node that could be a vertex.
-    #
-    # Is the edge unowned?
-    if next.owner is None:
-        # Continue the generation process, creating a new vertex.
-        generate_vertex(next)
-    else:
-        # The search must have looped back upon itself; do nothing, the
-        # generate_vertex() code will add that vertex to as our end when it
-        # checks node next as a potential neighbor.
-        pass
-
-def generate_vertex(node):
-    assert node.owner is None
-
-    show_progress(node,(95, 0, 0))
-
-    # Create a Vertex owning the starting node immediately. If the search loops
-    # around to this node, it needs to have an owner so the search will
-    # terminate.
-    edges = []
-    node.owner = Vertex(node,edges)
-
-    # Now for each neighboring node, generate the attached edge.
-    neighbors = find_node_neighbors(node)
-    assert len(neighbors) > 2
-    for n in neighbors:
-        # If the owner is not none, either we found the edge from the
-        # generate_edge() that called us, or the search looped back upon
-        # itself. In either case we are that edges end.
-        if n.owner is not None:
-            assert isinstance(n.owner,Edge)
-
-            # Set that edges end to be ourselves
-            n.owner.end = node.owner
-
-            # And add that edge to our edges list; note that we're guaranteed
-            # to be that edges end. Potentially, we're also that eges beginning.
-            node.owner.edges.append((n.owner,len(n.owner.nodes) - 1))
-        else:
-            # A virgin edge, generate.
-            generate_edge(node.owner,n)
-
-for n in nodes.itervalues():
-    if len(find_node_neighbors(n)) > 2:
-        generate_vertex(n)
-        break
-
 screen.fill((0,0,0))
-for n in nodes.itervalues():
+for n in nodes:
     color = led_color_off
     pygame.draw.circle(screen,led_color_off,(n.x * led_width,n.y * led_width),led_width / 2)
 
@@ -242,90 +144,17 @@ for n in nodes.itervalues():
 # files involved, a C header with all the definitions, such as the NUM_*
 # #defines, and a C source that staticly initializes the contents of the
 # involved arrays.
-#
-# Generation proceeds in two stages, first initialization lines for the nodes,
-# edges, and vertexes are collected. Then the strings are .join'ed up and
-# written to the output files.
-#
-# Node data generation is fairly simple, as the involved data structure simply
-# consists of x and y co-ordinates, and a pointer to any ant on the node, which
-# is of course set to NULL.
-#
-# However, the edge structure has a pointer to the array of nodes comprising
-# each edge. Since each node can only belong to one edge (or one vertex) we can
-# be clever here, and avoid an additional layer of indirection. The actual
-# nodes list is generated while edges are generated, and each set of nodes
-# belonging to a single edge is put contiguously in memory. Given a set of
-# edges a,b,c,d the ownership of the resulting nodes list would be as follows:
-#
-# AAAAABBBBCCCDD
-#
-# Where edge A has five nodes in it, B four nodes etc.
-
 
 node_lines = []
-def add_node_to_node_lines(n,comment = ''):
-    node_lines.append('{%d,%d,{%d,%d}}, // #%d %s' % \
+for n in nodes:
+    print n
+    neighbor_idxs = [adj.idx for adj in n.neighbors] + ([INVALID_NODE_IDX,] * (MAX_NODE_NEIGHBORS - len(n.neighbors)))
+
+    node_lines.append('{%d,%d,{%s},{%d,%d}}, // #%d' % \
             (n.x,n.y,
+             ','.join(['%d' % i for i in neighbor_idxs]),
              n.goal_dists['Light'],n.goal_dists['Dark'],
-             len(node_lines),comment))
-
-# The vertex generation code refers to the edges table later on, so keep a map
-# of edge indexes by edge so it can generate the required pointers.
-edge_idxs_by_edge = {}
-edge_lines = []
-for e in edges:
-    # Save the index to the beginning of this edges nodes in the final nodes list.
-    beginning_of_this_edges_nodes = len(node_lines)
-
-    for n in e.nodes:
-        add_node_to_node_lines(n,'Edge %d' % len(edge_lines) if e.nodes[0] is n else '')
-
-    edge_idxs_by_edge[e] = len(edge_lines)
-
-    # Since the vertex_lines haven't been generated yet, insert references to
-    # the start and end vertexes as part of a tuple along with the bits of the
-    # known string comprising the edge line. Later, after the vertex_lines
-    # generation, we'll resolve those.
-    edge_lines.append(\
-            ('{(struct vertex *)',e.start,',(struct vertex *)',e.end,',%d,(struct node *)%d}, // #%d' \
-                % (len(e.nodes),beginning_of_this_edges_nodes,len(edge_lines))))
-
-vertex_lines = []
-vertex_idxs_by_vertex = {}
-for v in vertexes:
-    # offset by 1 so we can represent NULL's with 0's
-    v_edges_idx_list = [(edge_idxs_by_edge[e] + 1,i) for e,i in v.edges]
-    # pad with null's
-    v_edges_idx_list.extend([(0,2**8-1) for i in range(0,4 - len(v_edges_idx_list))])
-
-    # Generate the goal distances part of the vertexes structure.
-    goal_dists = ['{']
-    for goal in goal_types:
-        goal_dists.append('{')
-        for (edge,idx) in v.edges:
-            node = edge.nodes[idx]
-            goal_dists.append('%s,' % node.goal_dists[goal])
-        # Need to fill in values if not all the edges are used to keep the
-        # pathfinding code simple.
-        for nonexistant in range(0,MAX_VERTEX_EDGES - len(v.edges)):
-            goal_dists.append('%s,' % MAX_GOAL_DIST)
-        goal_dists.append('},')
-    goal_dists.append('}')
-    goal_dists = ''.join(goal_dists)
-
-    vertex_idxs_by_vertex[v] = len(vertex_lines)
-    vertex_lines.append(\
-            '{(struct node *)%d,{%s},%s}, // #%d' \
-            % (len(node_lines), # we're just about to add the node owned by this vertex
-               ','.join(['{(struct edge *)%d,%d}' % (e,i) for e,i in v_edges_idx_list]),
-               goal_dists,
-               len(vertex_lines)))
-    add_node_to_node_lines(v.node,'Vertex %d' % (len(vertex_lines) - 1))
-
-# Resolve vertex references in edge_lines
-edge_lines = [''.join([str(vertex_idxs_by_vertex[part]) if isinstance(part,Vertex) else part for part in line]) \
-                for line in edge_lines]
+             n.idx))
 
 # Save the final structures to the output files.
 fd_defs = open(sys.argv[2],'w')
@@ -339,19 +168,16 @@ print >>fd_defs,\
 #define WORLD_HEIGHT (%(world_height)d)
 
 #define NUM_NODES (%(num_nodes)d)
-#define NUM_EDGES (%(num_edges)d)
-#define NUM_VERTEXES (%(num_vertexes)d)
 #define MAX_GOAL_DIST_IN_NETWORK (%(max_goal_dist_in_network)d)
 
-extern struct node nodes[];
-extern struct edge edges[];
-extern struct vertex vertexes[];
+#define MAX_NODE_NEIGHBORS (%(max_node_neighbors)d)
+#define INVALID_NODE_IDX (%(invalid_node_idx)d)
 """ % {'world_width':xsize,
        'world_height':ysize,
        'num_nodes':len(nodes),
-       'num_edges':len(edges),
-       'num_vertexes':len(vertexes),
        'max_goal_dist_in_network':max_goal_dist_in_network,
+       'max_node_neighbors':MAX_NODE_NEIGHBORS,
+       'invalid_node_idx':INVALID_NODE_IDX,
       }
 
 print >>fd_data,\
@@ -362,16 +188,7 @@ struct node nodes[] = {
 %(node_lines)s
 };
 
-struct edge edges[] = {
-%(edge_lines)s
-};
-
-struct vertex vertexes[] = {
-%(vertex_lines)s
-};
-""" % {'node_lines':'\n'.join(node_lines),
-       'edge_lines':'\n'.join(edge_lines),
-       'vertex_lines':'\n'.join(vertex_lines)}
+""" % {'node_lines':'\n'.join(node_lines)}
 
 while len(sys.argv) < 5:
     for event in pygame.event.get():

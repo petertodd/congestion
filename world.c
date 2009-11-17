@@ -4,195 +4,40 @@
 #include <world.h>
 #include <network.data>
 
-#define NODES_PER_ANT (5)
-#define NUM_ANTS 100 //(NUM_NODES / NODES_PER_ANT)
+#define NODES_PER_ANT (10)
+#define NUM_ANTS (NUM_NODES / NODES_PER_ANT)
 
 struct ant ants[NUM_ANTS];
-
-struct node *edge_idxs_node(struct edge_idx edge_idx){
-    assert(edge_idx.e);
-    assert(edge_idx.i < edge_idx.e->length);
-    return &edge_idx.e->nodes[edge_idx.i];
-}
-
-void reverse_travel_direction(struct edge_idx edge){
-    if (edge.e->travel_direction == 1){
-        edge.e->travel_direction = -1;
-    } else {
-        edge.e->travel_direction = 1;
-    }
-}
-
-struct node *ants_node(struct ant *ant){
-    assert((ant->cur_edge.e && !ant->cur_vertex) || (!ant->cur_edge.e && ant->cur_vertex));
-
-    if (ant->cur_edge.e){
-        return edge_idxs_node(ant->cur_edge);
-    } else {
-        return ant->cur_vertex->node;
-    }
-}
-
-void remove_ant_from_edge(struct ant *ant){
-    assert(ant->cur_edge.e);
-    assert(!ant->cur_vertex);
-
-    assert(ant->cur_edge.e->ants_present > 0);
-    ant->cur_edge.e->ants_present--;
-
-    ants_node(ant)->ant = NULL;
-    ant->cur_edge.e = NULL;
-}
-
-void add_ant_to_edge(struct ant *ant,struct edge_idx edge){
-    assert(!ant->cur_edge.e);
-    assert(!ant->cur_vertex);
-
-    ant->cur_edge = edge;
-    ant->cur_edge.e->ants_present++;
-    assert(!ants_node(ant)->ant);
-    ants_node(ant)->ant = ant;
-}
-
-void remove_ant_from_vertex(struct ant *ant){
-    assert(!ant->cur_edge.e);
-    assert(ant->cur_vertex);
-
-    ants_node(ant)->ant = NULL;
-    ant->cur_vertex = NULL;
-}
-
-void add_ant_to_vertex(struct ant *ant,struct vertex *vertex){
-    assert(!ant->cur_edge.e);
-    assert(!ant->cur_vertex);
-    assert(vertex);
-
-    ant->cur_vertex = vertex;
-    assert(!ants_node(ant)->ant);
-    ants_node(ant)->ant = ant;
-}
-
-int move_ant_to_vertex_if_possible(struct ant *ant,struct vertex *vertex){
-    assert(ant);
-    assert(vertex);
-
-    // Vertexes don't connect directly to vertexes
-    assert(!ant->cur_vertex);
-
-    if (!vertex->node->ant){
-        remove_ant_from_edge(ant);
-        add_ant_to_vertex(ant,vertex);
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-int move_ant_to_edge_if_possible(struct ant *ant,struct edge_idx edge){
-    assert(ant);
-
-    if (ant->cur_vertex){
-        // Vertex to edge
-        //
-        // Current direction of the edge is important, otherwise the ant will
-        // simply end up back at the vertex by the next move.
-        //
-        // However, as a special case if an edge doesn't have any ants on it,
-        // simply change the direction to match where we are trying to go.
-        if (!edge_idxs_node(edge)->ant &&
-            (((edge.i == 0 && edge.e->travel_direction == 1) || (edge.i != 0 && edge.e->travel_direction == -1)) ||
-             !edge.e->ants_present)){
-            // Set travel direction to the direction we're going in, to
-            // acommodate the special case of no ants present on the edge.
-            edge.e->travel_direction = edge.i == 0 ? 1 : -1;
-            remove_ant_from_vertex(ant);
-            add_ant_to_edge(ant,edge);
-            return 1;
-        } else {
-            return 0;
-        }
-    } else {
-        // Edge to edge
-        assert(ant->cur_edge.e == edge.e); // must be same edge, just a different index
-        assert(abs(ant->cur_edge.i - edge.i) == 1); // moves must be exactly one node apart
-        assert(edge.i >= 0 && edge.i < edge.e->length); // move is within bounds
-
-        if (!edge_idxs_node(edge)->ant){
-            edge_idxs_node(ant->cur_edge)->ant = NULL;
-            edge_idxs_node(edge)->ant = ant;
-            ant->cur_edge = edge;
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-}
 
 void init_world(){
     int i,k;
 
-    printf("sizeof(nodes) = %ld sizeof(edges) = %ld sizeof(vertexes) = %ld sizeof(ants) = %ld total = %ld\n",
-            sizeof(nodes),sizeof(edges),sizeof(vertexes),sizeof(ants),
-            sizeof(nodes) + sizeof(edges) + sizeof(vertexes) + sizeof(ants));
+    printf("sizeof(nodes) = %ld sizeof(ants) = %ld total = %ld\n",
+            sizeof(nodes),sizeof(ants),
+            sizeof(nodes) + sizeof(ants));
 
     for (i = 0; i < NUM_NODES; i++){
-        nodes[i].ant = NULL;
+        nodes[i].ant = INVALID_ANT_IDX;
     }
 
-    // The pointers in the network data tables are initialized as offsets from
-    // the beginning, we need to go through them all and convert them into
-    // proper absolute pointers.
-    for (i = 0; i < NUM_EDGES; i++){
-        edges[i].start = &vertexes[(long)edges[i].start];
-        edges[i].end = &vertexes[(long)edges[i].end];
-        edges[i].nodes = &nodes[(long)edges[i].nodes];
-
-        // Do initialization while we're at it
-        edges[i].travel_direction = random() % 2 ? 1 : -1;
-        edges[i].ants_present = 0;
-    }
-    for (i = 0; i < NUM_VERTEXES; i++){
-        vertexes[i].node = &nodes[(long)vertexes[i].node];
-        for (k = 0; k < NUM_VERTEX_EDGES; k++){
-            // Index is offset by one, so that 0 can represent NULL
-            if (!vertexes[i].edges[k].e){
-                vertexes[i].edges[k].e = NULL;
-            } else {
-                vertexes[i].edges[k].e = &edges[(long)vertexes[i].edges[k].e - 1];
-            }
-        }
-    }
-
-    // Add the ants, evenly distributed amoung nodes that are part of edges.
-    struct edge_idx e;
-    assert(NUM_ANTS < NUM_NODES - NUM_VERTEXES);
+    // Add the ants, evenly distributed amoung the nodes
+    assert(NUM_ANTS < NUM_NODES);
     i = 0;
     do {
         // This is acceptably efficient as the number of ants will never be a
         // significant fraction of the number of nodes.
-        e.e = &edges[random() % NUM_EDGES];
-        e.i = random() % e.e->length;
-        if (!edge_idxs_node(e)->ant){
-            ants[i].cur_vertex = NULL;
-            ants[i].cur_edge.e = NULL;
-
-            // FIXME: add ant goal initialization
+        k = random() % NUM_NODES;
+        if (nodes[k].ant == INVALID_ANT_IDX){
+            nodes[k].ant = i;
+            ants[i].cur_node = k;
             ants[i].goal = random() % NUM_GOALS;
-
-            add_ant_to_edge(&ants[i],e);
             i++;
         }
     } while (i < NUM_ANTS);
 }
 
-void potentially_reverse_travel_direction(struct ant *ant,struct vertex *vertex){
-    if (random() % 100 < 50){
-        reverse_travel_direction(ant->cur_edge);
-    }
-}
-
 void do_world(){
-    int i,j;
+    int i;
     struct ant *ant;
 
     for (i = 0; i < NUM_ANTS; i++){
@@ -200,83 +45,5 @@ void do_world(){
         // Random chance the ant will do nothing
         if (random() % 100 < 25)
             continue;
-
-        if (!ant->cur_vertex){
-            struct edge_idx new_edge = ant->cur_edge;
-
-            // The ant is on an edge, move along the edge.
-            new_edge.i += new_edge.e->travel_direction;
-
-            // Are we at the limit of travel?
-            if (new_edge.i < 0){
-                if (!move_ant_to_vertex_if_possible(ant,ant->cur_edge.e->start)){
-                    // Blocked!
-                    potentially_reverse_travel_direction(ant,ant->cur_edge.e->start);
-                }
-            } else if (new_edge.i >= ant->cur_edge.e->length){
-                if (!move_ant_to_vertex_if_possible(ant,ant->cur_edge.e->end)){
-                    // Blocked!
-                    potentially_reverse_travel_direction(ant,ant->cur_edge.e->end);
-                }
-            } else {
-                // Perform the move if possible
-                if (!edge_idxs_node(new_edge)->ant){
-                    edge_idxs_node(new_edge)->ant = ant;
-                    edge_idxs_node(ant->cur_edge)->ant = NULL;
-                    ant->cur_edge = new_edge;
-                }
-            }
-        } else {
-            // Ant is on a vertex node, choose a non-blocked edge to move to,
-            // with preference for edges leading us to our goals.
-
-            // Check if we've reached our goal.
-            //
-            // This is a little indirect, as goals are always vertexes,
-            // so therefor if you are on a vertex, who's *neighbors*
-            // have a goal_dist of *1* you must be on the goal vertex.
-            //
-            // Also, that means all neighbors must have a goal dist of 1, so we
-            // only need to check against the first neighbor.
-            if (ant->cur_vertex->goal_dists[ant->goal][0] == 1){
-                // Flip, the following code will now try to go towards the new
-                // goal.
-                ant->goal = ant->goal ? 0 : 1;
-            }
-
-            // Create a try_order() sorted by goal distance.
-            assert(NUM_VERTEX_EDGES == 4);
-            int try_order[] = {0,1,2,3};
-            int sorted;
-            // Bubble-sort!
-            do {
-                sorted = 1;
-                for (j = 0; j < NUM_VERTEX_EDGES - 1; j++){
-                    if (ant->cur_vertex->goal_dists[ant->goal][try_order[j]] > ant->cur_vertex->goal_dists[ant->goal][try_order[j + 1]]){
-                        sorted = 0;
-                        // swap
-                        int tmp;
-                        tmp = try_order[j + 1];
-                        try_order[j + 1] = try_order[j];
-                        try_order[j] = tmp;
-                    }
-                }
-            } while (!sorted);
-            // And try the possibilities sequentially.
-            for (j = 0; j < NUM_VERTEX_EDGES; j++){
-                struct edge_idx candidate = ant->cur_vertex->edges[try_order[j]];
-                if (candidate.e && move_ant_to_edge_if_possible(ant,candidate)){
-                    break;
-                }
-            }
-            if (j >= NUM_VERTEX_EDGES){
-                // We're stuck at a vertex. Given that the
-                // move_ant_to_edge_if_possible() will reverse the direction of
-                // the edge if there are no ants on it we can be sure this is
-                // because we're surrounded by ants. Do nothing, although in
-                // the future 'hydraulics' should be implemented so the edge
-                // with the most ants 'pushing' has priority.
-            }
-        }
     }
 }
