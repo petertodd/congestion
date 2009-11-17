@@ -229,8 +229,22 @@ void do_world(){
         } else {
             // Ant is on a vertex node, choose a non-blocked edge to move to,
             // with preference for edges leading us to our goals.
+
+            // Check if we've reached our goal.
             //
-            // First create a try_order() sorted by goal distance.
+            // This is a little indirect, as goals are always vertexes,
+            // so therefor if you are on a vertex, who's *neighbors*
+            // have a goal_dist of *1* you must be on the goal vertex.
+            //
+            // Also, that means all neighbors must have a goal dist of 1, so we
+            // only need to check against the first neighbor.
+            if (ant->cur_vertex->goal_dists[ant->goal][0] == 1){
+                // Flip, the following code will now try to go towards the new
+                // goal.
+                ant->goal = ant->goal ? 0 : 1;
+            }
+
+            // Create a try_order() sorted by goal distance.
             assert(NUM_VERTEX_EDGES == 4);
             int try_order[] = {0,1,2,3};
             int sorted;
