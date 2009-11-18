@@ -16,4 +16,8 @@
        typeof (b) _b = (b); \
        _a < _b ? a : b; })
 
+#define get_bit(a,n) \
+    ({ typeof (n) _n = (n); \
+       ((a)[_n / 8] >> _n) & (1 << _n) >> _n; })
+
 #endif
