@@ -22,13 +22,13 @@ typedef uint16_t ant_idx_t;
 #define INVALID_ANT_IDX (65535)
 
 struct ant {
-    node_idx_t cur_node;
+    node_idx_t node;
 
     // Current goal
     goal_t goal;
 
-    // How far we we have travelled trying to get to our current goal.
-    int16_t distance_travelled;
+    // How long it has taken since we started going to our current goal.
+    uint16_t time_taken;
 };
 extern struct ant ants[];
 

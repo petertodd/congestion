@@ -29,8 +29,9 @@ void init_world(){
         k = random() % NUM_NODES;
         if (nodes[k].ant == INVALID_ANT_IDX){
             nodes[k].ant = i;
-            ants[i].cur_node = k;
+            ants[i].node = k;
             ants[i].goal = random() % NUM_GOALS;
+            ants[i].time_taken = 0;
             i++;
         }
     } while (i < NUM_ANTS);
