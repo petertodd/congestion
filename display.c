@@ -58,8 +58,8 @@ void do_display(){
     for (i = 0; i < NUM_NODES; i++){
         switch (display_mode) {
             case GOALS:
-                color = makecol((double)nodes[i].goal_dists[0] / (double)MAX_GOAL_DIST_IN_NETWORK * 128.0,0,
-                                (double)nodes[i].goal_dists[1] / (double)MAX_GOAL_DIST_IN_NETWORK * 128.0);
+                color = makecol((double)nodes[i].goal_dists[0] / (double)max_goal_dist_in_network[0] * 128.0,0,
+                                (double)nodes[i].goal_dists[1] / (double)max_goal_dist_in_network[1] * 128.0);
                 break;
             default:
                 color = LED_COLOR_OFF;

@@ -5,7 +5,6 @@
 
 #include <stdint.h>
 
-#include <network.defs>
 
 // Goals. Using just two goals right now, simple and clean, and good for a
 // horizontal presentaiton.
@@ -18,8 +17,9 @@ typedef enum {
 typedef uint16_t goal_dist_t;
 typedef uint16_t node_idx_t;
 typedef uint16_t ant_idx_t;
-
 #define INVALID_ANT_IDX (65535)
+
+#include <network.defs>
 
 struct ant {
     node_idx_t node;

@@ -107,7 +107,7 @@ for n in nodes:
     n.find_neighbors()
 
 # compute goal distances with Dijkstra's algorithm
-max_goal_dist_in_network = 0
+max_goal_dist_in_network = {'Light':0,'Dark':0}
 def pathfind(node,goal,best):
     from collections import deque
     stack = deque(((node,0),))
@@ -122,7 +122,7 @@ def pathfind(node,goal,best):
         if node.goal_dists.get(goal,best + 1) > best:
             node.goal_dists[goal] = best
             global max_goal_dist_in_network
-            max_goal_dist_in_network = max(max_goal_dist_in_network,best)
+            max_goal_dist_in_network[goal] = max(max_goal_dist_in_network[goal],best)
 
             for n in node.neighbors:
                 # show_progress(n,(0,100,0))
@@ -168,7 +168,8 @@ print >>fd_defs,\
 #define WORLD_HEIGHT (%(world_height)d)
 
 #define NUM_NODES (%(num_nodes)d)
-#define MAX_GOAL_DIST_IN_NETWORK (%(max_goal_dist_in_network)d)
+
+extern goal_dist_t max_goal_dist_in_network[NUM_GOALS];
 
 #define MAX_NODE_NEIGHBORS (%(max_node_neighbors)d)
 #define INVALID_NODE_IDX (%(invalid_node_idx)d)
@@ -188,7 +189,10 @@ struct node nodes[] = {
 %(node_lines)s
 };
 
-""" % {'node_lines':'\n'.join(node_lines)}
+goal_dist_t max_goal_dist_in_network[] = {%(max_light)d,%(max_dark)d};
+""" % {'node_lines':'\n'.join(node_lines), \
+        'max_light':max_goal_dist_in_network['Light'],
+        'max_dark':max_goal_dist_in_network['Dark']}
 
 while len(sys.argv) < 5:
     for event in pygame.event.get():
