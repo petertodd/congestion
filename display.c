@@ -58,23 +58,22 @@ void do_display(){
     for (i = 0; i < NUM_NODES; i++){
         switch (display_mode) {
             case GOALS:
-//                color = makecol((double)nodes[i].goal_dists[0] / (double)max_goal_dist_in_network[0] * 128.0,0,
-  //                              (double)nodes[i].goal_dists[1] / (double)max_goal_dist_in_network[1] * 128.0);
-    //            break;
+                color = makecol((double)goal_dists[i][0] / (double)max_goal_dist_in_network[0] * 128.0,0,
+                                (double)goal_dists[i][1] / (double)max_goal_dist_in_network[1] * 128.0);
+                break;
             default:
                 color = LED_COLOR_OFF;
         };
 
         // Ants always show up
         if (ant_on_node(i)){
-     //       if (display_mode == GOALS){
-     //           color = ants[nodes[i].ant].goal ? makecol(200,0,0) : makecol(0,0,250);
-     //       } else {
+            if (display_mode == GOALS){
+                color = ants_goal_on_node(i) ? makecol(200,0,0) : makecol(0,0,250);
+            } else {
                 color = LED_COLOR_ON;
-     //       }
+            }
         }
 
-        printf("%d\n",i);
         draw_node(i,color);
     }
 

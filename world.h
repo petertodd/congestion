@@ -16,12 +16,14 @@
 extern uint8_t ant_presence[(NUM_NODES / 8) + 1];
 
 #define ant_on_node(n) (get_bit(ant_presence,n))
+#define set_ant_on_node(n,v) (set_bit(ant_presence,n,v))
 
 // The goals of the ants. Note that a given goal bit may not actually
 // correspond to a valid ant if the corresponding ant_presence bit isn't set.
 extern uint8_t ant_goals[(NUM_NODES / 8) + 1];
 
 #define ants_goal_on_node(n) (get_bit(ant_goals,n))
+#define set_ants_goal_on_node(n,v) (set_bit(ant_goals,n,v))
 
 struct vertex_rom {
     uint16_t led;

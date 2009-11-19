@@ -266,21 +266,24 @@ for v in vertexes:
 
 # For the sake of debugging, produce a list of nodes and who their owners are
 #
-# This is also a good time to produce the node_idx->(x,y) table that's needed
-# for the xwindows target.
+# This is also a good time to produce the node_idx->(x,y) and goal_dists tables
+# that are needed for the xwindows target.
 nodes_lines = ['// Nodes list']
 xy_lines = []
-def add_xy_line(n):
+goal_dists_lines = []
+def add_xy_goal_dists_line(n):
     xy_lines.append('{%d,%d}, // %d' % (n.x,n.y,n.idx))
+    goal_dists_lines.append('{%d,%d}, // %d' % (n.goal_dists[0],n.goal_dists[1],n.idx))
+
 for e,eidx in zip(edges,range(0,len(edges))):
     for n in e.nodes:
         nodes_lines.append('// %d%s' % \
                 (n.idx,
                  ' - Edge %d' % eidx if n is e.nodes[0] else ''))
-        add_xy_line(n)
+        add_xy_goal_dists_line(n)
 for v in vertexes:
     nodes_lines.append('// %d - Vertex %d' % (v.node.idx,v.idx))
-    add_xy_line(v.node)
+    add_xy_goal_dists_line(v.node)
 
 # Save the final structures to the output files.
 fd_defs = open(sys.argv[2],'w')
@@ -301,6 +304,8 @@ struct node_idx_to_xy {
 };
 
 extern const struct node_idx_to_xy node_idx_to_xy[%(num_nodes)d];
+
+extern const uint16_t goal_dists[NUM_NODES][2];
 
 extern const uint16_t max_goal_dist_in_network[2];
 
@@ -326,9 +331,13 @@ const struct node_idx_to_xy node_idx_to_xy[] = {
 %(xy_lines)s
 };
 
+const uint16_t goal_dists[][2] = {
+%(goal_dists_lines)s
+};
 """ % {'nodes_lines':'\n'.join(nodes_lines),
        'vertex_lines':',\n'.join(vertex_lines),
        'xy_lines':'\n'.join(xy_lines),
+       'goal_dists_lines':'\n'.join(goal_dists_lines),
        'max_light':max_goal_dist_in_network[0],
        'max_dark':max_goal_dist_in_network[1]}
 
