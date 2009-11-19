@@ -28,8 +28,8 @@ void init_display(){
     LED_COLOR_OFF = makecol(30,30,30);
 }
 
-void draw_node(struct node *node,int color){
-    ellipsefill(buffer,node->x * SCALE,node->y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,color);
+void draw_node(int node,int color){
+    ellipsefill(buffer,node_idx_to_xy[node].x * SCALE,node_idx_to_xy[node].y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,color);
 }
 
 void do_display(){
@@ -58,23 +58,24 @@ void do_display(){
     for (i = 0; i < NUM_NODES; i++){
         switch (display_mode) {
             case GOALS:
-                color = makecol((double)nodes[i].goal_dists[0] / (double)max_goal_dist_in_network[0] * 128.0,0,
-                                (double)nodes[i].goal_dists[1] / (double)max_goal_dist_in_network[1] * 128.0);
-                break;
+//                color = makecol((double)nodes[i].goal_dists[0] / (double)max_goal_dist_in_network[0] * 128.0,0,
+  //                              (double)nodes[i].goal_dists[1] / (double)max_goal_dist_in_network[1] * 128.0);
+    //            break;
             default:
                 color = LED_COLOR_OFF;
         };
 
         // Ants always show up
-        if (nodes[i].ant != INVALID_ANT_IDX){
-            if (display_mode == GOALS){
-                color = ants[nodes[i].ant].goal ? makecol(200,0,0) : makecol(0,0,250);
-            } else {
+        if (ant_on_node(i)){
+     //       if (display_mode == GOALS){
+     //           color = ants[nodes[i].ant].goal ? makecol(200,0,0) : makecol(0,0,250);
+     //       } else {
                 color = LED_COLOR_ON;
-            }
+     //       }
         }
 
-        draw_node(&nodes[i],color);
+        printf("%d\n",i);
+        draw_node(i,color);
     }
 
     blit(buffer, screen, 0, 0, 0, 0, WORLD_WIDTH * LED_WIDTH, WORLD_HEIGHT * LED_WIDTH);
