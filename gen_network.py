@@ -262,7 +262,7 @@ for v in vertexes:
     neighbor_lines.extend(['{0,0,0,0,{0,0}}'] * (4 - len(v.node.neighbors)))
     neighbor_lines = ','.join(neighbor_lines)
 
-    vertex_lines.append('{%d,{%s}}' % (v.node.idx,neighbor_lines))
+    vertex_lines.append('{%d,{%s}}, // %d' % (v.node.idx,neighbor_lines,v.idx))
 
 # For the sake of debugging, produce a list of nodes and who their owners are
 #
@@ -335,7 +335,7 @@ const uint16_t goal_dists[][2] = {
 %(goal_dists_lines)s
 };
 """ % {'nodes_lines':'\n'.join(nodes_lines),
-       'vertex_lines':',\n'.join(vertex_lines),
+       'vertex_lines':'\n'.join(vertex_lines),
        'xy_lines':'\n'.join(xy_lines),
        'goal_dists_lines':'\n'.join(goal_dists_lines),
        'max_light':max_goal_dist_in_network[0],
