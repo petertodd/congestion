@@ -28,15 +28,14 @@ void init_display(){
     LED_COLOR_OFF = makecol(30,30,30);
 }
 
-void draw_node(struct node *node,int color){
-    ellipsefill(buffer,node->x * SCALE,node->y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,color);
+void draw_node(int node,int color){
+    ellipsefill(buffer,node_idx_to_xy[node].x * SCALE,node_idx_to_xy[node].y * SCALE,LED_WIDTH / 2 - 1,LED_WIDTH / 2 - 1,color);
 }
 
 void do_display(){
-    int i,j,color;
+    int i,color;
     static enum {
         DEFAULT,
-        TRAVEL_DIRECTIONS,
         GOALS
     } display_mode = DEFAULT;
 
@@ -48,9 +47,6 @@ void do_display(){
             case 'd':
                 display_mode = DEFAULT;
                 break;
-            case 't':
-                display_mode = TRAVEL_DIRECTIONS;
-                break;
             case 'g':
                 display_mode = GOALS;
                 break;
@@ -58,52 +54,27 @@ void do_display(){
     }
 
 
-    // Draw nodes owned by edges
-    for (i = 0; i < NUM_EDGES; i++){
-        for (j = 0; j < edges[i].length; j++){
-            switch (display_mode) {
-                case TRAVEL_DIRECTIONS:
-                    if (edges[i].travel_direction == 1){
-                        color = (50.0 / edges[i].length) * j;
-                    } else {
-                        color = 50 - ((50.0 / edges[i].length) * j);
-                    }
-                    color += 30;
-                    color = makecol(color,color,color);
-                    break;
-                case GOALS:
-                    color = makecol((double)edges[i].nodes[j].goal_dists[0] / (double)MAX_GOAL_DIST_IN_NETWORK * 128.0,0,
-                                    (double)edges[i].nodes[j].goal_dists[1] / (double)MAX_GOAL_DIST_IN_NETWORK * 128.0);
-                    break;
-                default:
-                    color = LED_COLOR_OFF;
-            };
+    // Draw nodes
+    for (i = 0; i < NUM_NODES; i++){
+        switch (display_mode) {
+            case GOALS:
+                color = makecol((double)goal_dists[i][0] / (double)max_goal_dist_in_network[0] * 128.0,0,
+                                (double)goal_dists[i][1] / (double)max_goal_dist_in_network[1] * 128.0);
+                break;
+            default:
+                color = LED_COLOR_OFF;
+        };
 
-            // Ants always show up
-            if (edges[i].nodes[j].ant){
-                if (display_mode == GOALS){
-                    color = edges[i].nodes[j].ant->goal ? makecol(200,0,0) : makecol(0,0,250);
-                } else {
-                    color = LED_COLOR_ON;
-                }
-            }
-
-            draw_node(&edges[i].nodes[j],color);
-        }
-    }
-
-    // Draw nodes owned by vertexes
-    for (i = 0; i < NUM_VERTEXES; i++){
-        if (vertexes[i].node->ant){
+        // Ants always show up
+        if (ant_on_node(i)){
             if (display_mode == GOALS){
-                color = vertexes[i].node->ant->goal ? makecol(200,0,0) : makecol(0,0,250);
+                color = ants_goal_on_node(i) ? makecol(200,0,0) : makecol(0,0,250);
             } else {
                 color = LED_COLOR_ON;
             }
-        } else {
-            color = LED_COLOR_OFF;
         }
-        draw_node(vertexes[i].node,color);
+
+        draw_node(i,color);
     }
 
     blit(buffer, screen, 0, 0, 0, 0, WORLD_WIDTH * LED_WIDTH, WORLD_HEIGHT * LED_WIDTH);

@@ -5,86 +5,55 @@
 
 #include <stdint.h>
 
-// Goals. Using just two goals right now, simple and clean, and good for a
-// horizontal presentaiton.
-#define NUM_GOALS 2
-typedef enum {
-    Light = 0,
-    Dark = 1
-} goal_t;
-
-#define MAX_GOAL_DIST (65535)
-typedef uint16_t goal_dist_t;
-
-struct edge;
-struct vertex;
-
-struct edge_idx {
-    struct edge *e;
-    int8_t i;
-};
-
-struct ant {
-    struct edge_idx cur_edge;
-    struct vertex *cur_vertex;
-
-    // Current goal
-    goal_t goal;
-};
-
-
-
-// An individual led that an ant may be on. Only one ant may be present on a
-// node at any time.
-//
-// The nodes really refers to which led we want to light up, so "x" and "y"
-// could be something like chip select and index, especially given that 256 led
-// controllers are available.
-//
-// All this can be stored in ROM.
-struct node {
-    uint16_t x;
-    uint16_t y;
-
-    struct ant *ant;
-
-    // Temporary to make display code simple
-    int goal_dists[NUM_GOALS];
-};
-
-// A vertex is a node that connects edges together.
-//
-// Vertexes are where decisions about which direction to go are made.
-#define NUM_VERTEX_EDGES 4
-struct vertex {
-    struct node *node;
-
-    struct edge_idx edges[NUM_VERTEX_EDGES];
-
-    // Distances to each goal, and the edges that get you there.
-    goal_dist_t goal_dists[NUM_GOALS][NUM_VERTEX_EDGES];
-};
-
-// An edge is a list of nodes connecting vertexes.
-//
-// Importantly, an edge has the idea of both how many ants are present along
-// it, and a direction of travel.
-//
-// Edges are also goal locations, generalizing the idea of nodes being goals.
-// Since an ant on an edge will travel every node on the edge (ignoring changes
-// in direction) the edge itself can be the goal.
-#define MAX_VERTEX_NEIGHBORS (4)
-struct edge {
-    int8_t travel_direction;
-    uint8_t ants_present;
-
-    struct vertex *start,*end;
-
-    uint8_t length;
-    struct node *nodes;
-};
-
 #include <network.defs>
+
+// All data structures are split into the parts that can go in ROM, and the
+// parts that can go in RAM.
+
+// Bit field of ant presence, IE, is an ant on an led?
+//
+// Doubles as the led table in essence.
+extern uint8_t ant_presence[(NUM_NODES / 8) + 1];
+
+#define ant_on_node(n) (get_bit(ant_presence,n))
+#define set_ant_on_node(n,v) (set_bit(ant_presence,n,v))
+
+// The goals of the ants. Note that a given goal bit may not actually
+// correspond to a valid ant if the corresponding ant_presence bit isn't set.
+extern uint8_t ant_goals[(NUM_NODES / 8) + 1];
+
+#define ants_goal_on_node(n) (get_bit(ant_goals,n))
+#define set_ants_goal_on_node(n,v) (set_bit(ant_goals,n,v))
+
+struct vertex_rom {
+    uint16_t led;
+    struct {
+        unsigned int valid : 1;
+        // Start and end leds
+        unsigned int start : 15;
+        unsigned int end : 16;
+
+        // The vertex at the other end of the edge, may be ourselves.
+        uint16_t vertex;
+
+        // Relative dists from either goal if an ant starts going down the edge
+        // to the given neighbor. By relative, we mean the neighbor with the
+        // lowest distance will be zero. Maxes out at 256 of course.
+        //
+        // Note that this has to be the distance you'd be from the goal at the
+        // vertex at the other end of the edge, not the start node. If the
+        // latter is measured, all distances are different by exactly 0 or 2...
+        uint8_t goal_dists[2];
+    } neighbors[4];
+} __attribute__ ((__packed__));
+extern const struct vertex_rom vertex_roms[NUM_VERTEXES];
+
+struct vertex_ram {
+    uint16_t next_node[2];
+    uint8_t edge_dirs[4];
+};
+extern struct vertex_ram vertex_rams[NUM_VERTEXES];
+
 
 void init_world();
 
