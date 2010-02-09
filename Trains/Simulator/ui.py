@@ -1,21 +1,6 @@
 # vim: tabstop=4 expandtab shiftwidth=4 fileencoding=utf8
-# ### BOILERPLATE ###
-# Trains - train network thingy
-# Copyright (C) 2007 Peter Todd <pete@petertodd.org>
-# 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# ### BOILERPLATE ###
+#
+# Copyright (C) 2010 Peter Todd <pete@petertodd.org>
 
 """User interface."""
 
@@ -41,6 +26,8 @@ class UserInterface:
         self.screen.fill((255,255,255))
 
         # Display the network
+
+        # Draw the tracks and nodes
         for track in self.network.tracks:
             for n in (track.a,track.b):
                 x,y = n.pos
@@ -56,23 +43,26 @@ class UserInterface:
                     c = (0,255,255)
                     size = 4
                 pygame.draw.circle(self.screen,c,ip((x + 1,y + 1)),size)
-            pygame.draw.aaline(self.screen,(0,0,min(track.traffic,255)),ip(track.a.pos),ip(track.b.pos))
+            pygame.draw.aaline(self.screen,(0,0,min(0,255)),ip(track.a.pos),ip(track.b.pos))
 
-        # Draw the trains
-        for t in self.network.trains:
-            # Calculate what fraction of the total length the train has travelled.
-            f = t.travelled / t.occupying[0].length()
-
-            # Determine where on the line segment to draw the dot.
-            a = t.occupying[0].a.pos
-            b = t.occupying[0].b.pos
+        # draw the trains on the track
+        for track in self.network.tracks:
+            # determine slope for later
+            a = track.a.pos
+            b = track.b.pos
             dx = b[0] - a[0]
             dy = b[1] - a[1]
+            for p,t in track.trains:
+                def pos_to_v(pos):
+                    f = pos / track.length()
+                    return (track.a.pos[0] + (dx * f),track.a.pos[1] + (dy * f))
 
-            x = int(a[0] + (dx * f))
-            y = int(a[1] + (dy * f))
+                train_start = pos_to_v(max(0,p))
+                train_end = pos_to_v(max(0,p + t.l))
+                buffer_end = pos_to_v(max(0,p + t.l + t.buffer_safety_margin))
 
-            pygame.draw.circle(self.screen,(255,0,0),(x + 1,y + 1),2)
+                pygame.draw.aaline(self.screen,(255,0,0),ip(train_start),ip(train_end))
+                pygame.draw.aaline(self.screen,(0,255,0),ip(train_end),ip(buffer_end))
 
         # where the mouse is, equivilent to node id
         pos = pygame.mouse.get_pos()

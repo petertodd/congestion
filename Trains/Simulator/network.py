@@ -1,30 +1,22 @@
 # vim: tabstop=4 expandtab shiftwidth=4 fileencoding=utf8
-# ### BOILERPLATE ###
-# Trains - train network thingy
-# Copyright (C) 2007 Peter Todd <pete@petertodd.org>
-# 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# ### BOILERPLATE ###
+#
+# Copyright (C) 2010 Peter Todd <pete@petertodd.org>
+
+import random
+from collections import deque
 
 import Trains.network
 
-from random import random,randrange
 from train import Train
 from sets import Set
 
 class Node(Trains.network.Node):
-    """A single node within the train network."""
+    """A single node connecting tracks.
+
+    Only one Train may occupy a node at any one time. Nod
+    """
+
+    occupying = False # The train occupying this Node, may be None
 
     def __init__(self,pos):
         Trains.network.Node.__init__(self,pos)
@@ -36,27 +28,33 @@ class Track(Trains.network.Track):
        """
 
     # The trains occupying this track 
-    present = False 
-
-    # Trains waiting to enter this track.
-    waiting_to_enter = None
-
-    # Reported traffic
-    traffic = False
+    #
+    # Implemented as a deque of [pos,train]'s, note that pos may be negative
+    trains = False
 
     def __init__(self,a,b):
         Trains.network.Track.__init__(self,a,b)
 
-        self.present = []
-        self.waiting_to_enter = []
-        self.traffic = 0
+        self.trains = deque()
 
-    def maintain(self,delta_t):
-        """Maintain the track, statistics and the like."""
+    def add_train(self,train,end_pos):
+        if len(self.trains) > 0 and self.trains[0][0] <= end_pos:
+            return False
+        else:
+            self.trains.appendleft([end_pos - train.l - train.b,train])
+            return True
 
-        # If no-one is waiting to enter, there isn't any traffic... 
-        if not self.waiting_to_enter:
-            self.traffic = 0  
+    def occupied(self,x):
+        """Return Train occupying track at position x
+
+        Returns None if the track is empty
+        """
+        for pos,train in self.trains:
+            if pos <= x <= train.occupying_length + pos:
+                return train
+            elif pos > x:
+                return None
+        return None
 
 class Network(Trains.network.Network):
     """The graph of the train network."""
@@ -76,15 +74,16 @@ class Network(Trains.network.Network):
 
         self.trains = []
 
-    def do(self,delta_t):
+    def do(self,dt):
         for t in self.trains:
-            t.do(delta_t)
-        for t in self.tracks:
-            t.maintain(delta_t)
+            t.do_extend_buffers(dt)
+        for t in self.trains:
+            t.do_move(dt)
 
     def add_random_trains(self,n = 20):
         """Add random trains to the network."""
 
-        for i in range(0,n):
-            t = self.tracks[randrange(0,len(self.tracks))]
+        rndtracks = list(self.tracks)
+        random.shuffle(rndtracks)
+        for i,t in zip(range(0,n),rndtracks):
             self.trains.append(Train(self,t))
