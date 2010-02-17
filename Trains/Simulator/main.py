@@ -47,7 +47,7 @@ def main(argv):
 
     net = Network(sys.stdin)
 
-    net.add_random_trains(n = 2)
+    net.add_random_trains()
 
     ui = ui.UserInterface(net,(800,600))
 

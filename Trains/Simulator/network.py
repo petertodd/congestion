@@ -113,9 +113,11 @@ class Network(Trains.network.Network):
             print t,t.__dict__
         print
 
-    def add_random_trains(self,n = -1):
+    def add_random_trains(self,n = None):
         """Add random trains to the network."""
         rndtracks = list(self.tracks)
         random.shuffle(rndtracks)
+        if n is None:
+            n = len(rndtracks)
         for i,t in zip(range(0,n),rndtracks[0:n]):
             self.trains.append(Train(self,t))

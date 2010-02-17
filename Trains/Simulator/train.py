@@ -20,9 +20,9 @@ class Train:
 
     # intrinsic characteristics
     l = 40.0 # length, m
-    m = 10.0 # mass, kg
-    max_driving_force = 50.0 # max driving force, newtons
-    max_braking_force = -100.0 # max braking force, newtons
+    m = 100.0 # mass, kg
+    max_driving_force = 500.0 # max driving force, newtons
+    max_braking_force = -1000.0 # max braking force, newtons
     cd = -0.1 # drag coefficient, unitless, Fd = v^2 * cd
 
     # Safety margin for the buffer, multiplier
@@ -33,7 +33,7 @@ class Train:
 
         # add ourselves to the beginning of the track
         self.occupying = deque((location,))
-        location.add_train(self,self.l + 150)
+        location.add_train(self,0)
 
         self.max_driving_force *= random.random() + 0.5
         self.max_braking_force = self.max_driving_force * -3
