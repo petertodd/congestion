@@ -47,12 +47,12 @@ def main(argv):
 
     net = Network(sys.stdin)
 
-    net.add_random_trains(n = 150)
+    net.add_random_trains(n = 2)
 
     ui = ui.UserInterface(net,(800,600))
 
 
-    dt = 0.1
+    dt = 0.05
     while True:
         net.do(dt)
         ui.do()

@@ -49,6 +49,9 @@ class Node:
     def __str__(self):
         return str(self.pos)
 
+    def __repr__(self):
+        return 'Node(%r)' % (self.pos,)
+
     def __eq__(self,other):
         if type(self) != type(other):
             return False

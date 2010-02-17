@@ -33,15 +33,8 @@ class UserInterface:
                 x,y = n.pos
                 c = (0,0,0)
                 size = 2
-                if n == self.network.nodes[0]:
-                    c = (255,255,0)
-                    size = 4
-                if n == self.network.nodes[1]:
-                    c = (0,255,0)
-                    size = 4
-                if n == self.network.nodes[2]:
-                    c = (0,255,255)
-                    size = 4
+                if n.occupying is not None:
+                    c = (255,0,0)
                 pygame.draw.circle(self.screen,c,ip((x + 1,y + 1)),size)
             pygame.draw.aaline(self.screen,(0,0,min(0,255)),ip(track.a.pos),ip(track.b.pos))
 
@@ -58,8 +51,8 @@ class UserInterface:
                     return (track.a.pos[0] + (dx * f),track.a.pos[1] + (dy * f))
 
                 train_start = pos_to_v(max(0,p))
-                train_end = pos_to_v(max(0,p + t.l))
-                buffer_end = pos_to_v(max(0,p + t.l + t.buffer_safety_margin))
+                train_end = pos_to_v(min(track.length(),max(0,p + t.l)))
+                buffer_end = pos_to_v(min(track.length(),max(0,p + t.l + t.b)))
 
                 pygame.draw.aaline(self.screen,(255,0,0),ip(train_start),ip(train_end))
                 pygame.draw.aaline(self.screen,(0,255,0),ip(train_end),ip(buffer_end))

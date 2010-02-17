@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<train_network>
+ <nodes>
+  <node pos="(30, 30)"/>
+  <node pos="(30, 300)"/>
+  <node pos="(300, 30)"/>
+ </nodes>
+ <tracks>
+  <track a="(30, 30)" b="(30, 300)"/>
+  <track a="(30, 300)" b="(300, 30)"/>
+  <track a="(300, 30)" b="(30, 30)"/>
+ </tracks>
+</train_network>
