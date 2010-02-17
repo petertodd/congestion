@@ -115,7 +115,7 @@ class Track:
         """Returns the current length of the track"""
         dx = self.b.pos[0] - self.a.pos[0]
         dy = self.b.pos[1] - self.a.pos[1]
-        return int(sqrt((dx ** 2) + (dy ** 2)))
+        return sqrt((dx ** 2) + (dy ** 2))
 
 
     def dump_dom(self,doc):
