@@ -23,20 +23,20 @@ class UserInterface:
         self.screen = pygame.display.set_mode(screen_size)
 
     def do(self):
-        self.screen.fill((255,255,255))
+        self.screen.fill((0,0,0))
 
         # Display the network
 
         # Draw the tracks and nodes
         for track in self.network.tracks:
-            for n in (track.a,track.b):
-                x,y = n.pos
-                c = (0,0,0)
-                size = 2
-                if n.occupying is not None:
-                    c = (255,0,0)
-                pygame.draw.circle(self.screen,c,ip((x + 1,y + 1)),size)
-            pygame.draw.aaline(self.screen,(0,0,min(0,255)),ip(track.a.pos),ip(track.b.pos))
+#            for n in (track.a,track.b):
+#                x,y = n.pos
+#                c = (0,0,0)
+#                size = 2
+#                if n.occupying is not None:
+#                    c = (255,0,0)
+#                pygame.draw.circle(self.screen,c,ip((x + 1,y + 1)),size)
+            pygame.draw.aaline(self.screen,(100,100,100),ip(track.a.pos),ip(track.b.pos))
 
         # draw the trains on the track
         for track in self.network.tracks:
@@ -55,7 +55,7 @@ class UserInterface:
                 buffer_end = pos_to_v(min(track.length(),max(0,p + t.l + t.b)))
 
                 pygame.draw.aaline(self.screen,(255,0,0),ip(train_start),ip(train_end))
-                pygame.draw.aaline(self.screen,(0,255,0),ip(train_end),ip(buffer_end))
+                pygame.draw.aaline(self.screen,(0,120,0),ip(train_end),ip(buffer_end))
 
         # where the mouse is, equivilent to node id
         pos = pygame.mouse.get_pos()
