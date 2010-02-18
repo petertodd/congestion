@@ -55,7 +55,7 @@ class Track(Trains.network.Track):
         for pt in self.trains:
             if pt[1] is train:
                 pt[0] += dp
-                if pt[0] >= self.length():
+                if pt[0] >= self.length:
                     assert self.trains[-1][1] is train
                     self.trains.pop()
                     return True

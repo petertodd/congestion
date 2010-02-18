@@ -76,7 +76,7 @@ class Train:
             # Attempt to reserve the extra buffer needed
             head_track = self.occupying[-1]
             end_pos = head_track.find_train(self) + self.l
-            if end_pos + stopping_distance >= head_track.length():
+            if end_pos + stopping_distance >= head_track.length:
                 # We've reached the end of the track, find where to go next
                 if head_track.b.occupying is None:
                     # Pick a random exit that is empty
@@ -85,7 +85,7 @@ class Train:
                     for next_track in exits:
                         if next_track.find_train(self) is None and \
                            next_track.ok_to_enter() and \
-                           next_track.add_train(self,(end_pos + stopping_distance) - head_track.length()):
+                           next_track.add_train(self,(end_pos + stopping_distance) - head_track.length):
                             # Found an empty exit track
                             head_track.b.occupying = self
                             self.occupying.append(head_track.b)

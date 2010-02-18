@@ -49,12 +49,12 @@ class UserInterface:
             dy = b[1] - a[1]
             for p,t in track.trains:
                 def pos_to_v(pos):
-                    f = pos / track.length()
+                    f = pos / track.length
                     return (track.a.pos[0] + (dx * f),track.a.pos[1] + (dy * f))
 
                 train_start = pos_to_v(max(0,p))
-                train_end = pos_to_v(min(track.length(),max(0,p + t.l)))
-                buffer_end = pos_to_v(min(track.length(),max(0,p + t.l + t.b)))
+                train_end = pos_to_v(min(track.length,max(0,p + t.l)))
+                buffer_end = pos_to_v(min(track.length,max(0,p + t.l + t.b)))
 
                 if train_start != train_end:
                     pygame.draw.aaline(self.screen,t.color,ip(train_start),ip(train_end))

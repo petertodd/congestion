@@ -88,6 +88,8 @@ class Track:
 
         self.locking_token_classes.setdefault(self.locking_token,[]).append(self)
 
+        self.length = self.calc_length()
+
     def __eq__(self,other):
         if type(self) != type(other):
             return False
@@ -103,7 +105,7 @@ class Track:
     def __hash__(self):
         return hash((hash(self.a),hash(self.b)))
 
-    def length(self):
+    def calc_length(self):
         """Returns the current length of the track"""
         dx = self.b.pos[0] - self.a.pos[0]
         dy = self.b.pos[1] - self.a.pos[1]
