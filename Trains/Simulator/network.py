@@ -56,7 +56,6 @@ class Track(Trains.network.Track):
             if pt[1] is train:
                 pt[0] += dp
                 if pt[0] >= self.length():
-                    print self.trains,train
                     assert self.trains[-1][1] is train
                     self.trains.pop()
                     return True
@@ -105,19 +104,12 @@ class Network(Trains.network.Network):
             t.do_extend_buffers(dt)
         for t in self.trains:
             t.do_move(dt)
-        print '### all tracks ###'
-        for t in self.tracks:
-            print t.__dict__
-        print '### all trains ###'
-        for t in self.trains:
-            print t,t.__dict__
-        print
 
     def add_random_trains(self,n = None):
         """Add random trains to the network."""
         rndtracks = list(self.tracks)
         random.shuffle(rndtracks)
         if n is None:
-            n = len(rndtracks)
+            n = len(rndtracks) / 2
         for i,t in zip(range(0,n),rndtracks[0:n]):
             self.trains.append(Train(self,t))

@@ -19,17 +19,17 @@ class Train:
     f = 0.0 
 
     # intrinsic characteristics
-    l = 5.0 # length, m
+    l = 15.0 # length, m
     m = 100.0 # mass, kg
-    max_driving_force = 1000.0 # max driving force, newtons
-    max_braking_force = -5000.0 # max braking force, newtons
+    max_driving_force = 10000.0 # max driving force, newtons
+    max_braking_force = -50000.0 # max braking force, newtons
     cd = -0.1 # drag coefficient, unitless, Fd = v^2 * cd
 
     # Safety margin for the buffer, multiplier
     buffer_safety_margin = 1.1
 
     # Minimum distance from next train
-    buffer_min_distance = 20
+    buffer_min_distance = 5 
 
     def __init__(self,net,location,**kwargs):
         self.net = net
@@ -52,12 +52,15 @@ class Train:
         self.v += (tf / self.m) * dt
         self.v = max(0,self.v) # velocity must always be positive
 
+        # keep velocity low enough to avoid doing weird stuff
+        self.v = min(5/dt,self.v)
+
         # Calculate the stopping distance at our current velocity
         stopping_distance = (self.v*self.v*self.m) / -self.max_braking_force
         stopping_distance *= self.buffer_safety_margin
         stopping_distance = max(self.buffer_min_distance,stopping_distance)
 
-        print 'tf',tf,'f',self.f,'v',self.v,'m',self.m,'b',self.b,'stopping_distance',stopping_distance
+        #print 'tf',tf,'f',self.f,'v',self.v,'m',self.m,'b',self.b,'stopping_distance',stopping_distance
 
         if self.b > stopping_distance:
             # reducing the stopping distance is too complex, as we would then
@@ -73,18 +76,18 @@ class Train:
                     # Pick a random exit that is empty
                     exits = list(head_track.b.exits)
                     random.shuffle(exits)
-                    print self,'exits',exits
                     for next_track in exits:
-                        if next_track.add_train(self,(end_pos + stopping_distance) - head_track.length()):
+                        if next_track.find_train(self) is None and \
+                           next_track.add_train(self,(end_pos + stopping_distance) - head_track.length()):
                             # Found an empty exit track
                             head_track.b.occupying = self
                             self.occupying.append(head_track.b)
                             self.occupying.append(next_track)
                             self.b = stopping_distance
-                            print 'found empty track',head_track.b,next_track
                             break
                         else:
-                            print self,'blocked at',next_track
+                            #print self,'blocked at',next_track
+                            pass
             else:
                 # If the track is not occupied at the new stopping distance
                 # endpoint, we can set the buffer space to the new stopping
@@ -93,8 +96,9 @@ class Train:
                 if occupied_by is None or occupied_by is self:
                     self.b = stopping_distance
                 else:
-                    print 'head track for train',self,'occupied by',head_track.occupied(end_pos + stopping_distance),'at',end_pos,stopping_distance,'self.pos',head_track.find_train(self),'head_track',head_track
-                    print head_track.trains
+                    #print 'head track for train',self,'occupied by',head_track.occupied(end_pos + stopping_distance),'at',end_pos,stopping_distance,'self.pos',head_track.find_train(self),'head_track',head_track
+                    #print head_track.trains
+                    pass
 
         if self.b < stopping_distance:
             # Note how if there was no safety margin we wouldn't actually stop in time 
@@ -105,23 +109,23 @@ class Train:
 
     def do_move(self,dt):
         dp = self.v * dt
-        dp = min(dp,10)
 
         # Since we have moved forward, our buffer has to be decreased by the same amount.
         self.b -= dp
 
         # Update positions
-        left_track = 0 
+        left_track = False 
         for track in self.occupying:
             if isinstance(track,Trains.Simulator.network.Track):
                 if track.move_train(self,dp):
-                    left_track += 1 
-        while left_track > 0:
-            print self.occupying
+                    assert left_track is False
+                    left_track = True
+        if left_track:
+            #print self.occupying
             assert isinstance(self.occupying[1],Trains.Simulator.network.Node)
             assert self.occupying[1].occupying is self
             self.occupying[1].occupying = None
             self.occupying.popleft()
             self.occupying.popleft()
-            print self.occupying
+            #print self.occupying
             left_track -= 1

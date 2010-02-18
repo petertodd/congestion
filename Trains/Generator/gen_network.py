@@ -37,9 +37,9 @@ def ip(pos):
 def gen_random_network(net,
         width=1024,height=768,
         border=30,
-        num_nodes=10,
-        min_dist=200,
-        road_width=15):
+        num_nodes=50,
+        min_dist=100,
+        road_width=10):
     """Create a network. 
     """
 
@@ -199,10 +199,10 @@ def gen_random_network(net,
             outr.pa = intr
             pygame.draw.circle(screen,(0,120,0),ip(inr.pb.pos),2)
             pygame.display.flip()
-            sleep(0.1)
+            #sleep(0.1)
             pygame.draw.circle(screen,(0,120,120),ip(outr.pa.pos),2)
             pygame.display.flip()
-            sleep(0.1)
+            #sleep(0.1)
             pygame.draw.aaline(screen,(0,0,0),ip(inl[0]),ip(inl[1]))
             pygame.draw.aaline(screen,(0,0,0),ip(outl[0]),ip(outl[1]))
             pygame.display.flip()
@@ -214,7 +214,7 @@ def gen_random_network(net,
             assert a is not None
             pygame.draw.aaline(screen,(120,0,0),ip(r.pa.pos),ip(r.pb.pos))
             pygame.display.flip()
-            sleep(0.1)
+            #sleep(0.1)
 
         # Create the round-about-tracks connecting the circle
         if len(i.ins) > 2:
