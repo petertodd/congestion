@@ -53,7 +53,7 @@ class Train:
         self.v = max(0,self.v) # velocity must always be positive
 
         # keep velocity low enough to avoid doing weird stuff
-        self.v = min(5/dt,self.v)
+        self.v = min(2.5/dt,self.v)
 
         # Calculate the stopping distance at our current velocity
         stopping_distance = (self.v*self.v*self.m) / -self.max_braking_force
@@ -78,6 +78,7 @@ class Train:
                     random.shuffle(exits)
                     for next_track in exits:
                         if next_track.find_train(self) is None and \
+                           next_track.ok_to_enter() and \
                            next_track.add_train(self,(end_pos + stopping_distance) - head_track.length()):
                             # Found an empty exit track
                             head_track.b.occupying = self

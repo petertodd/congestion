@@ -35,8 +35,8 @@ class Track(Trains.network.Track):
        Tracks are one way, a to b.
        """
 
-    def __init__(self,a,b):
-        Trains.network.Track.__init__(self,a,b)
+    def __init__(self,a,b,locking_token=-1):
+        Trains.network.Track.__init__(self,a,b,locking_token)
 
 class Network(Trains.network.Network):
     """The graph of the train network."""
@@ -52,7 +52,7 @@ class Network(Trains.network.Network):
     node_generator = Node
     track_generator = Track
 
-    def add_track(self,a,b):
+    def add_track(self,a,b,locking_token=-1):
         """Add a track between a and b.
 
            Returns (t,i)
@@ -75,5 +75,5 @@ class Network(Trains.network.Network):
         # Trains.network.Track object rather than the correct
         # Trains.Generator.network.Track
         if not i:
-            n = Trains.network.Network.add_track(self,a,b)
+            n = Trains.network.Network.add_track(self,a,b,locking_token=locking_token)
         return (n,tuple(i))

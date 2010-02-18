@@ -39,7 +39,7 @@ def gen_random_network(net,
         border=30,
         num_nodes=50,
         min_dist=100,
-        road_width=10):
+        road_width=8):
     """Create a network. 
     """
 
@@ -219,7 +219,8 @@ def gen_random_network(net,
         # Create the round-about-tracks connecting the circle
         if len(i.ins) > 2:
             last = i.ins[0].pb
+            locking_token = randrange(1,1000000)
             for r in i.ins[1:] + i.ins[0:1]:
-                a,b = net.add_track(last,r.pb)
+                a,b = net.add_track(last,r.pb,locking_token=locking_token)
                 assert a is not None
                 last = r.pb

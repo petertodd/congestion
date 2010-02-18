@@ -32,8 +32,8 @@ class Track(Trains.network.Track):
     # Implemented as a deque of [pos,train]'s, note that pos may be negative
     trains = False
 
-    def __init__(self,a,b):
-        Trains.network.Track.__init__(self,a,b)
+    def __init__(self,a,b,locking_token=-1):
+        Trains.network.Track.__init__(self,a,b,locking_token)
 
         self.trains = deque()
 
@@ -68,6 +68,13 @@ class Track(Trains.network.Track):
             if t is train:
                 return p
         return None
+
+    def ok_to_enter(self):
+        if self.locking_token >= 0:
+            for t in self.locking_token_classes[self.locking_token]:
+                if len(t.trains) > 0:
+                    return False
+        return True
 
     def occupied(self,x):
         """Return Train occupying track at position x

@@ -1,21 +1,6 @@
 # vim: tabstop=4 expandtab shiftwidth=4 fileencoding=utf8
-# ### BOILERPLATE ###
 # Trains - train network thingy
-# Copyright (C) 2007 Peter Todd <pete@petertodd.org>
-# 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# ### BOILERPLATE ###
+# Copyright (C) 2010 Peter Todd <pete@petertodd.org>
 
 # Basic definition of a train network, with loading and saving functions.
 
@@ -93,10 +78,15 @@ class Track:
     a = False
     b = False
 
-    def __init__(self,a,b):
+    locking_token_classes = {}
+
+    def __init__(self,a,b,locking_token=-1):
         self.a = a
         self.a.exits.add(self)
         self.b = b
+        self.locking_token=locking_token
+
+        self.locking_token_classes.setdefault(self.locking_token,[]).append(self)
 
     def __eq__(self,other):
         if type(self) != type(other):
@@ -125,6 +115,7 @@ class Track:
 
         t.setAttribute("a",str(self.a))
         t.setAttribute("b",str(self.b))
+        t.setAttribute("locking_token",str(self.locking_token))
 
         return t 
 
@@ -183,13 +174,13 @@ class Network:
 
         return n
 
-    def add_track(self,a,b):
+    def add_track(self,a,b,locking_token=-1):
         """Add a track to the network connecting nodes a and b
         
         Returns the added track
         """
 
-        t = self.track_generator(a,b)
+        t = self.track_generator(a,b,locking_token)
 
         self.tracks.append(t)
 
@@ -236,8 +227,9 @@ class Network:
         for t in track_elements:
             a = pos2node[t.getAttribute('a')]
             b = pos2node[t.getAttribute('b')]
+            locking_token = int(t.getAttribute('locking_token'))
 
-            self.tracks.append(self.track_generator(a,b))
+            self.tracks.append(self.track_generator(a,b,locking_token))
 
     def save(self,f):
         """Save the network to file handle f"""
