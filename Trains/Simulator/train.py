@@ -38,8 +38,14 @@ class Train:
         self.occupying = deque((location,))
         location.add_train(self,0)
 
-        self.max_driving_force *= random.random() + 0.5
+        self.m = self.m * (random.random() + 0.5)
+        self.l = self.l * (random.random() + 0.5)
+        self.cd = self.cd * (random.random() + 0.5)
+        self.max_driving_force = self.max_driving_force * (random.random() + 0.5)
         self.max_braking_force = self.max_driving_force * -5
+
+        #self.color = ((random.random() * 50) + 200,random.random() * 50,random.random() * 50)
+        self.color = (255,0,0)
 
     def do_extend_buffers(self,dt):
         # The buffer zone is to provide sufficient space to stop the train via

@@ -38,7 +38,7 @@ class UserInterface:
 
         # Draw the tracks and nodes
         for track in self.network.tracks:
-            pygame.draw.aaline(self.screen,(100,100,100),ip(track.a.pos),ip(track.b.pos))
+            pygame.draw.aaline(self.screen,( 30, 30, 30),ip(track.a.pos),ip(track.b.pos))
 
         # draw the trains on the track
         for track in self.network.tracks:
@@ -56,8 +56,9 @@ class UserInterface:
                 train_end = pos_to_v(min(track.length(),max(0,p + t.l)))
                 buffer_end = pos_to_v(min(track.length(),max(0,p + t.l + t.b)))
 
-                pygame.draw.aaline(self.screen,(255,0,0),ip(train_start),ip(train_end))
-                pygame.draw.aaline(self.screen,(75,0,0),ip(train_end),ip(buffer_end))
+                if train_start != train_end:
+                    pygame.draw.aaline(self.screen,t.color,ip(train_start),ip(train_end))
+                #pygame.draw.aaline(self.screen,(75,0,0),ip(train_end),ip(buffer_end))
 
         # where the mouse is, equivilent to node id
         pos = pygame.mouse.get_pos()

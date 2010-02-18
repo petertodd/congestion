@@ -65,8 +65,8 @@ class Network(Trains.network.Network):
         i = []
         n = None
         for t in self.tracks:
-            if Intersect((a.pos,b.pos),(t.a.pos,t.b.pos)) \
-               or ((a.pos == t.a.pos) and (b.pos == t.b.pos)) \
+            # if Intersect((a.pos,b.pos),(t.a.pos,t.b.pos))
+            if ((a.pos == t.a.pos) and (b.pos == t.b.pos)) \
                or ((a.pos == t.b.pos) and (b.pos == t.a.pos)):
                 i.append(t)
 

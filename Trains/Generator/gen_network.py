@@ -37,8 +37,8 @@ def ip(pos):
 def gen_random_network(net,
         width=1024,height=768,
         border=30,
-        num_nodes=50,
-        min_dist=100,
+        num_nodes=75,
+        min_dist=75,
         road_width=8):
     """Create a network. 
     """
@@ -68,7 +68,7 @@ def gen_random_network(net,
     for n in nodes:
         conns[n] = set()
     for n in nodes:
-        dists,idxs = kdt.query(n,k=3)
+        dists,idxs = kdt.query(n,k=randrange(4,6))
 
         dists = dists[1:num_nodes] # throw away the 'match' to node n
         idxs = idxs[1:num_nodes]
