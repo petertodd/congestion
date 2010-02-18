@@ -19,14 +19,17 @@ class Train:
     f = 0.0 
 
     # intrinsic characteristics
-    l = 40.0 # length, m
+    l = 30.0 # length, m
     m = 100.0 # mass, kg
-    max_driving_force = 500.0 # max driving force, newtons
-    max_braking_force = -1000.0 # max braking force, newtons
+    max_driving_force = 10000.0 # max driving force, newtons
+    max_braking_force = -50000.0 # max braking force, newtons
     cd = -0.1 # drag coefficient, unitless, Fd = v^2 * cd
 
     # Safety margin for the buffer, multiplier
     buffer_safety_margin = 1.1
+
+    # Minimum distance from next train
+    buffer_min_distance = 20
 
     def __init__(self,net,location,**kwargs):
         self.net = net
@@ -36,7 +39,7 @@ class Train:
         location.add_train(self,0)
 
         self.max_driving_force *= random.random() + 0.5
-        self.max_braking_force = self.max_driving_force * -3
+        self.max_braking_force = self.max_driving_force * -5
 
     def do_extend_buffers(self,dt):
         # The buffer zone is to provide sufficient space to stop the train via
@@ -52,7 +55,7 @@ class Train:
         # Calculate the stopping distance at our current velocity
         stopping_distance = (self.v*self.v*self.m) / -self.max_braking_force
         stopping_distance *= self.buffer_safety_margin
-        stopping_distance = max(0,stopping_distance)
+        stopping_distance = max(self.buffer_min_distance,stopping_distance)
 
         print 'tf',tf,'f',self.f,'v',self.v,'m',self.m,'b',self.b,'stopping_distance',stopping_distance
 

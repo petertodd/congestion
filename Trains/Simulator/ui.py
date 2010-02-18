@@ -55,7 +55,7 @@ class UserInterface:
                 buffer_end = pos_to_v(min(track.length(),max(0,p + t.l + t.b)))
 
                 pygame.draw.aaline(self.screen,(255,0,0),ip(train_start),ip(train_end))
-                pygame.draw.aaline(self.screen,(0,120,0),ip(train_end),ip(buffer_end))
+                pygame.draw.aaline(self.screen,(75,0,0),ip(train_end),ip(buffer_end))
 
         # where the mouse is, equivilent to node id
         pos = pygame.mouse.get_pos()

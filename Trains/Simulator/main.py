@@ -52,7 +52,7 @@ def main(argv):
     ui = ui.UserInterface(net,(800,600))
 
 
-    dt = 0.05
+    dt = 0.025
     while True:
         net.do(dt)
         ui.do()
