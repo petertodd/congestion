@@ -117,6 +117,6 @@ class Network(Trains.network.Network):
         rndtracks = list(self.tracks)
         random.shuffle(rndtracks)
         if n is None:
-            n = len(rndtracks) / 2
+            n = int(len(rndtracks) / 1.50)
         for i,t in zip(range(0,n),rndtracks[0:n]):
             self.trains.append(Train(self,t))

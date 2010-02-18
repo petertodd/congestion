@@ -35,13 +35,18 @@ def main(argv):
 
     net.add_random_trains()
 
-    ui = ui.UserInterface(net,(1024,768))
+    ui = ui.UserInterface(net,(1920,1080))
 
 
     dt = 0.02
+    import time
+    last = time.time()
     while True:
         net.do(dt)
         ui.do()
         
-        import time
-        time.sleep(dt)
+        now = time.time()
+        sleep_for = dt-(now-last)
+        if sleep_for > 0:
+            time.sleep(sleep_for)
+        last = now

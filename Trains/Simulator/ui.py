@@ -38,7 +38,7 @@ class UserInterface:
 
         # Draw the tracks and nodes
         for track in self.network.tracks:
-            pygame.draw.aaline(self.screen,( 30, 30, 30),ip(track.a.pos),ip(track.b.pos))
+            pygame.draw.aaline(self.screen,( 50, 50, 60),ip(track.a.pos),ip(track.b.pos))
 
         # draw the trains on the track
         for track in self.network.tracks:

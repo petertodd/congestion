@@ -35,16 +35,16 @@ def ip(pos):
 
 
 def gen_random_network(net,
-        width=1024,height=768,
+        width=1920,height=1080,
         border=30,
-        num_nodes=75,
+        num_nodes=150,
         min_dist=75,
         road_width=8):
     """Create a network. 
     """
 
     pygame.init()
-    screen = pygame.display.set_mode((1024,768))
+    screen = pygame.display.set_mode((width,height))
 
     # Build up n random nodes, such that no node is closer to any other node than min_dist
     #
