@@ -27,15 +27,17 @@ class UserInterface:
 
         # Display the network
 
+        if False:
+            for n in self.network.nodes: 
+                x,y = n.pos
+                c = (100,100,100)
+                size = 2
+                if n.occupying is not None:
+                    c = (255,0,0)
+                pygame.draw.circle(self.screen,c,ip((x + 1,y + 1)),size)
+
         # Draw the tracks and nodes
         for track in self.network.tracks:
-#            for n in (track.a,track.b):
-#                x,y = n.pos
-#                c = (0,0,0)
-#                size = 2
-#                if n.occupying is not None:
-#                    c = (255,0,0)
-#                pygame.draw.circle(self.screen,c,ip((x + 1,y + 1)),size)
             pygame.draw.aaline(self.screen,(100,100,100),ip(track.a.pos),ip(track.b.pos))
 
         # draw the trains on the track

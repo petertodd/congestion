@@ -49,10 +49,10 @@ def main(argv):
 
     net.add_random_trains()
 
-    ui = ui.UserInterface(net,(800,600))
+    ui = ui.UserInterface(net,(1024,768))
 
 
-    dt = 0.025
+    dt = 0.01
     while True:
         net.do(dt)
         ui.do()

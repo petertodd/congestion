@@ -45,6 +45,8 @@ class Node:
             y = int(p[1])
 
             self.pos = (x,y)
+        assert self.pos[0] > 0
+        assert self.pos[1] > 0
 
     def __str__(self):
         return str(self.pos)

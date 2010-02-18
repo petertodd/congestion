@@ -19,10 +19,10 @@ class Train:
     f = 0.0 
 
     # intrinsic characteristics
-    l = 30.0 # length, m
+    l = 5.0 # length, m
     m = 100.0 # mass, kg
-    max_driving_force = 10000.0 # max driving force, newtons
-    max_braking_force = -50000.0 # max braking force, newtons
+    max_driving_force = 1000.0 # max driving force, newtons
+    max_braking_force = -5000.0 # max braking force, newtons
     cd = -0.1 # drag coefficient, unitless, Fd = v^2 * cd
 
     # Safety margin for the buffer, multiplier
@@ -105,18 +105,18 @@ class Train:
 
     def do_move(self,dt):
         dp = self.v * dt
+        dp = min(dp,10)
 
         # Since we have moved forward, our buffer has to be decreased by the same amount.
         self.b -= dp
 
         # Update positions
-        left_track = False
+        left_track = 0 
         for track in self.occupying:
             if isinstance(track,Trains.Simulator.network.Track):
                 if track.move_train(self,dp):
-                    assert not left_track
-                    left_track = True
-        if left_track:
+                    left_track += 1 
+        while left_track > 0:
             print self.occupying
             assert isinstance(self.occupying[1],Trains.Simulator.network.Node)
             assert self.occupying[1].occupying is self
@@ -124,3 +124,4 @@ class Train:
             self.occupying.popleft()
             self.occupying.popleft()
             print self.occupying
+            left_track -= 1

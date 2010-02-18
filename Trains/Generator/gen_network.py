@@ -1,145 +1,225 @@
 # vim: tabstop=4 expandtab shiftwidth=4 fileencoding=utf8
-# ### BOILERPLATE ###
+#
 # Trains - train network thingy
-# Copyright (C) 2007 Peter Todd <pete@petertodd.org>
-# 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# ### BOILERPLATE ###
-
-"""Ways of generating random networks from scratch."""
+# Copyright (C) 2010 Peter Todd <pete@petertodd.org>
 
 import sys
+from time import sleep
 
 from random import random,randrange
 from network import *
-from sets import Set
-from intersect import Intersect 
 
-def find_not_fully_reachable(net):
-    """Returns list of what nodes are not reachable by other nodes.
-       
-       
-        A node is defined as always being able to reach itself.   
+import numpy as np
+import math
+from scipy.spatial import distance_matrix,KDTree
+
+import pygame
+
+def line_intersection(aa,ab,ba,bb):
+    x1 = float(aa[0])
+    x2 = float(ab[0])
+    x3 = float(ba[0])
+    x4 = float(bb[0])
+    y1 = float(aa[1])
+    y2 = float(ab[1])
+    y3 = float(ba[1])
+    y4 = float(bb[1])
+    return ((((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4))/
+             ((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4))),
+            (((x1*y2-y1*x2)*(y3-y4)-(y1-y2)*(x3*y4-y3*x4))/
+             ((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4))))
+
+def ip(pos):
+    x,y = pos
+    return (int(x),int(y))
+
+
+def gen_random_network(net,
+        width=1024,height=768,
+        border=30,
+        num_nodes=10,
+        min_dist=200,
+        road_width=15):
+    """Create a network. 
     """
 
-    # Fairly simple algorithm. We maintain a set of reachable nodes for for
-    # each node in the system. Then for each node, we do a search finding
-    # everything that is connected. The optimization lies in that once we
-    # know what nodes are reachable from a given node, if a search
-    # encounters that node, we can simply take that list of nodes rather
-    # than perform the search again.
+    pygame.init()
+    screen = pygame.display.set_mode((1024,768))
 
-    # Create empty "can reach" table
-    reaches = {}
-    for a in net.nodes:
-        reaches[a] = Set()
+    # Build up n random nodes, such that no node is closer to any other node than min_dist
+    #
+    # Naive algorithm, add nodes one at a time, and test 
+    nodes = []
+    while len(nodes) < num_nodes:
+        nodes.append((((width - 2*border) * random()) + border,
+                      ((height - 2*border) * random()) + border))
+        dists = distance_matrix(nodes,nodes)
 
-    r = []
-    all_nodes = Set(net.nodes)
-    for n in net.nodes:
-        reaches[n].add(n) # we can reach ourselves
+        # Remove the 0's down the diag
+        dists += np.eye(len(nodes),len(nodes)) * min_dist
 
-        # Breadth first search of all connected nodes.
-        l = [t.b for t in n.exits]
-        for i in l:
-            # Already know we can reach this node?
-            if not (i in reaches[n]):
-                # Reachability already calculated?
-                if reaches[i]:
-                    # Yes, just add the sets of reachable nodes together.
-                    reaches[n] |= reaches[i]
-                else:
-                    # Mark that we can reach i and add it's exits the list of
-                    # nodes to consider. 
-                    reaches[n].add(i)
-                    l += [t.b for t in i.exits]
-        j = all_nodes - reaches[n]
-        if j:
-            r.append((n,j))
+        if dists.min() < min_dist:
+            nodes.pop()
 
-    return r
+    # Now generate a graph by going through each node, and finding the closest
+    # nodes to it.
+    kdt = KDTree(nodes)
+    conns = {}
+    for n in nodes:
+        conns[n] = set()
+    for n in nodes:
+        dists,idxs = kdt.query(n,k=3)
 
-def add_track_to_closest_node(net,a,nodes,max_dist = 500):
-    """Given node a finds the closest node from nodes and adds a track between them.
-       
-       If the closest would result in two tracks intersecting, tries the next
-       best and so on.
+        dists = dists[1:num_nodes] # throw away the 'match' to node n
+        idxs = idxs[1:num_nodes]
 
-       Returns true if this was possible to do.
-    """
+        for d,i in zip(dists,idxs):
+            conns[n].add(nodes[i])
+            conns[nodes[i]].add(n)
 
-    dists = []
-    for b in nodes:
-        d = min([abs(a.pos[0] - b.pos[0]),abs(a.pos[1] - b.pos[1])])
-        dists.append((d,b))
+    # We've got the basic set of interconnections. Now we need to create two
+    # things, roads, and intersections.
+    class Intersection:
+        def __init__(self,pos):
+            self.pos = pos
+            pygame.draw.circle(screen,(0,255,0),ip(self.pos),3)
+            pygame.display.flip()
+            self.ins = set() 
+            self.outs = set()
+        def __hash__(self):
+            return hash(self.pos)
+        def __repr__(self):
+            return 'Intersection(%r)' % ((int(self.pos[0]),int(self.pos[1])),)
+        def sort_roads(self):
+            """Sort the ins and outs lists clockwise"""
+            def sort_roads(roads,end):
+                def ang(road):
+                    v = None
+                    if end:
+                        v = road.a.pos
+                    else:
+                        v = road.b.pos
+                    v = np.array(v) - np.array(self.pos)
+                    a = math.atan2(v[1],v[0])
+                    if a < 0:
+                        return -(math.pi*2 + a)
+                    else:
+                        return -a
+                return sorted(roads,key=ang)
+            l = len(self.ins)
+            self.ins = sort_roads(self.ins,True)
+            assert len(self.ins) == l
+            l = len(self.outs)
+            self.outs = sort_roads(self.outs,False)
+            assert len(self.outs) == l
 
-    dists = sorted(dists)
+    class Road:
+        def __init__(self,a,b):
+            self.a = a
+            self.b = b
+            self.pa = None 
+            self.pb = None
+            pygame.draw.aaline(screen,(255,0,0),ip(self.a.pos),ip(self.b.pos))
+            pygame.display.flip()
+        def __hash__(self):
+            return hash((self.a,self.b))
+        def __repr__(self):
+            return 'Road(%r,%r)' % (self.a,self.b)
 
-    # Try each possibility, closest first.
-    for d,b in dists:
-        # Don't try to create tracks to ourselves
-        if a == b:
-            continue 
+    # Turn nodes into intersections
+    inters = {}
+    for n in nodes:
+        i = Intersection(n)
+        inters[n] = i
 
-        # Is there already a track between the two in either direction?
-        if a.is_exit(b) or b.is_exit(a): 
-            continue
+    # Turn the connection list into roads. Each connection creates a single
+    # road, from k to v
+    pairs_done = {}
+    for k,v in conns.iteritems():
+        for r in v:
+            if (k,r) not in pairs_done and (r,k) not in pairs_done:
+                pairs_done[(k,r)] = True
 
-        # Too long?
-        if (d > max_dist):
-            continue
+                # Add roads for in and out both both this intersection, and it's connection ones
+                nr = Road(inters[k],inters[r])
+                inters[r].ins.add(nr)
+                inters[k].outs.add(nr)
 
-        if not net.add_track(a,b):
-            return True
+                nr = Road(inters[r],inters[k])
+                inters[k].ins.add(nr)
+                inters[r].outs.add(nr)
 
-    return False
+    # We can now sort the in and out roads for each intersection clockwise with respect to angle.
+    for i in inters.itervalues():
+        i.sort_roads()
 
-def gen_random_network(net,width=800,height=600,n = 10,grid_size = 40,grid_buf = 5,edge_buffer = 10):
-    """Create a random network.
-       
-       n - number of tracks to add
-    """
+    # Now for each road, go through the in and out roads and adjust their
+    # actual endpoints to separate the lanes.
+    for i in inters.itervalues():
+        # Note how the out-roads array is shifted by one, visually the in road,
+        # should intersect directly with the subsequent (anti-clockwise)
+        # out-road.
+        print >>sys.stderr,zip(i.ins,i.outs[1:] + i.outs[0:1])
+        for inr,outr in zip(i.ins,i.outs[1:] + i.outs[0:1]):
+            # Create versions of in and out that have been made parallel, but
+            # road_width/2 distant from, the centerline, and then find where
+            # they intersect.
 
-    # Start with n random nodes
+            # Note that we are not finding the interection of the line segments
+            # made by the parallel roads, rather we need to find the
+            # intersection of infinitely long lines, of the correct slope,
+            # passing through the endpoints.
 
-    # Generate list of candidate positions
-    grid_pos = []
-    for x in range(0,width / grid_size):
-        for y in range(0,height / grid_size):
-            grid_pos.append((x * grid_size,y * grid_size))
+            # Shift endpoints by the road width.
+            def mk_parallel_endpoints(road,dist,dir):
+                a = np.array(road.a.pos)
+                a.resize(3)
+                b = np.array(road.b.pos)
+                b.resize(3)
+                u = b-a
+                u = u / np.sqrt(np.dot(u,u))
+                v = np.cross(u,np.array((0,0,dir)))*dist
+                a += v
+                b += v
+                a.resize(2)
+                b.resize(2)
+                return (a,b) 
 
-    # Pick n random positions from grid_pos
-    for i in range(0,n):
-        pos = grid_pos[randrange(0,len(grid_pos))]
-        grid_pos.remove(pos)
+            inl = mk_parallel_endpoints(inr,road_width/2,-1)
+            pygame.draw.aaline(screen,(0,120,0),ip(inl[0]),ip(inl[1]))
+            outl = mk_parallel_endpoints(outr,road_width/2,-1)
+            pygame.draw.aaline(screen,(0,0,120),ip(outl[0]),ip(outl[1]))
 
-        x,y = pos
+            intr = line_intersection(inl[0],inl[1],outl[0],outl[1])
+            intr = Node((intr[0],intr[1]))
+            net.nodes.append(intr)
+            assert inr.pb is None
+            assert outr.pa is None
+            inr.pb = intr
+            outr.pa = intr
+            pygame.draw.circle(screen,(0,120,0),ip(inr.pb.pos),2)
+            pygame.display.flip()
+            sleep(0.1)
+            pygame.draw.circle(screen,(0,120,120),ip(outr.pa.pos),2)
+            pygame.display.flip()
+            sleep(0.1)
+            pygame.draw.aaline(screen,(0,0,0),ip(inl[0]),ip(inl[1]))
+            pygame.draw.aaline(screen,(0,0,0),ip(outl[0]),ip(outl[1]))
+            pygame.display.flip()
 
-        # Add some randomness within the confines of the grid
-        x += (random() * (grid_size - (grid_buf * 2))) + grid_buf
-        y += (random() * (grid_size - (grid_buf * 2))) + grid_buf
+    for i in inters.itervalues():
+        # Create tracks for the roads themselves
+        for r in i.ins:
+            a,b = net.add_track(r.pa,r.pb)
+            assert a is not None
+            pygame.draw.aaline(screen,(120,0,0),ip(r.pa.pos),ip(r.pb.pos))
+            pygame.display.flip()
+            sleep(0.1)
 
-        net.nodes.append(Node((x,y)))
-
-    d = 0
-    while True:
-        d += 5 
-        print >> sys.stderr, 'max_dist: ' + str(d)
-
-        not_reachable = find_not_fully_reachable(net)
-        if not not_reachable:
-            break
-
-        for a,n in not_reachable:
-            add_track_to_closest_node(net,a,n,max_dist = d)
+        # Create the round-about-tracks connecting the circle
+        if len(i.ins) > 2:
+            last = i.ins[0].pb
+            for r in i.ins[1:] + i.ins[0:1]:
+                a,b = net.add_track(last,r.pb)
+                assert a is not None
+                last = r.pb
