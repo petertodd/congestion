@@ -132,40 +132,11 @@ class Network:
     width = None 
     height = None
 
-
-    # Generator functions to create a new Node or Track, to be changed by
-    # subclasses.
-    node_generator = Node
-    track_generator = Track
-
-    def __init__(self,f = None):
-        """Create a new network
-
-        f - Optional file handle to load network from"""
+    def __init__(self):
+        """Create a new network"""
 
         self.nodes = []
         self.tracks = []
-
-        if f:
-            self.load(f)            
-
-    def __eq__(self,other):
-        if len(self.nodes) != len(other.nodes):
-            return False
-        for (a,b) in zip(self.nodes,other.nodes):
-            if a != b:
-                return False
-
-        if len(self.tracks) != len(other.tracks):
-            return False
-        for (a,b) in zip(self.tracks,other.tracks):
-            if a != b:
-                return False
-
-        return True
-
-    def __ne__(self,other):
-        return not self.__eq__(other)
 
     def add_node(self,pos):
         """Add a node to the network at position pos"""
@@ -187,70 +158,3 @@ class Network:
         self.tracks.append(t)
 
         return t
-
-    def load(self,f):
-        """Load the network from file handle f"""
-
-        # Clear
-        self.nodes = []
-        self.tracks = []
-
-
-        dom = parse(f)
-
-        print dom.getElementsByTagName('train_network')
-
-        train_network_elements = dom.getElementsByTagName('train_network')
-        assert(train_network_elements.length == 1)
-        train_network_element = train_network_elements[0]
-
-        nodes_elements = train_network_element.getElementsByTagName('nodes')
-        assert(nodes_elements.length == 1)
-        nodes_element = nodes_elements[0]
-
-        node_elements = nodes_element.getElementsByTagName('node')
-
-        for n in node_elements:
-            self.nodes.append(self.node_generator(n.getAttribute('pos')))
-   
-
-        tracks_elements = train_network_element.getElementsByTagName('tracks')
-        assert(tracks_elements.length == 1)
-        tracks_element = tracks_elements[0]
-
-        track_elements = tracks_element.getElementsByTagName('track')
-
-        # Nodes in the xml file have textical positions, while new Track
-        # elements expect actual Node objects, so create a lookup table.
-        pos2node = {}
-        for n in self.nodes:
-            pos2node[str(n.pos)] = n
-
-        for t in track_elements:
-            a = pos2node[t.getAttribute('a')]
-            b = pos2node[t.getAttribute('b')]
-            locking_token = int(t.getAttribute('locking_token'))
-
-            self.tracks.append(self.track_generator(a,b,locking_token))
-
-    def save(self,f):
-        """Save the network to file handle f"""
-
-        doc = Document()
-
-        net = doc.createElement("train_network")
-        doc.appendChild(net)
-
-        nodes = doc.createElement("nodes")
-        net.appendChild(nodes)
-
-        for n in self.nodes:
-            nodes.appendChild(n.dump_dom(doc))
-
-        tracks = doc.createElement("tracks")
-        net.appendChild(tracks)
-
-        for t in self.tracks:
-            tracks.appendChild(t.dump_dom(doc))
-
-        doc.writexml(f,addindent=" ",newl="\n")

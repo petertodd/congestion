@@ -1,11 +1,13 @@
 # vim: tabstop=4 expandtab shiftwidth=4 fileencoding=utf8
 #
-# Trains - train network thingy
 # Copyright (C) 2010 Peter Todd <pete@petertodd.org>
 
 __version__ = "0.0"
 
 import sys
+
+import Congestion.network as network
+from Congestion.ui import UserInterface
 
 def main(argv):
     """
@@ -27,23 +29,16 @@ def main(argv):
 
     (options, args) = parser.parse_args(argv)
 
+    net = network.Network()
 
-    import ui
-    from Trains.Simulator.network import *
-
-    net = Network(sys.stdin)
-
-    net.add_random_trains()
-
-    ui = ui.UserInterface(net,(1920,1080))
-
+    ui = UserInterface(net,(1024,768))
 
     dt = 0.02
     import time
     last = time.time()
     while True:
-        net.do(dt)
-        ui.do()
+        #net.do(dt)
+        #ui.do()
         
         now = time.time()
         sleep_for = dt-(now-last)
