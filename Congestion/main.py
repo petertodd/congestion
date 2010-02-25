@@ -6,7 +6,7 @@ __version__ = "0.0"
 
 import sys
 
-import Congestion.network as network
+from Congestion.network import world
 from Congestion.ui import UserInterface
 
 def main(argv):
@@ -29,16 +29,14 @@ def main(argv):
 
     (options, args) = parser.parse_args(argv)
 
-    net = network.Network()
-
-    ui = UserInterface(net,(1024,768))
+    ui = UserInterface(world,(1024,768))
 
     dt = 0.02
     import time
     last = time.time()
     while True:
-        #net.do(dt)
-        #ui.do()
+        world.do(dt)
+        ui.do(dt)
         
         now = time.time()
         sleep_for = dt-(now-last)

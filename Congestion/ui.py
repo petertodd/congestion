@@ -22,7 +22,7 @@ class UserInterface:
         pygame.init()
         self.screen = pygame.display.set_mode(screen_size)
 
-    def do(self):
+    def do(self,dt):
         self.screen.fill((0,0,0))
 
         # Display the network
@@ -41,24 +41,25 @@ class UserInterface:
             pygame.draw.aaline(self.screen,( 50, 50, 60),ip(track.a.pos),ip(track.b.pos))
 
         # draw the trains on the track
-        for track in self.network.tracks:
-            # determine slope for later
-            a = track.a.pos
-            b = track.b.pos
-            dx = b[0] - a[0]
-            dy = b[1] - a[1]
-            for p,t in track.trains:
-                def pos_to_v(pos):
-                    f = pos / track.length
-                    return (track.a.pos[0] + (dx * f),track.a.pos[1] + (dy * f))
+        if False:
+            for track in self.network.tracks:
+                # determine slope for later
+                a = track.a.pos
+                b = track.b.pos
+                dx = b[0] - a[0]
+                dy = b[1] - a[1]
+                for p,t in track.trains:
+                    def pos_to_v(pos):
+                        f = pos / track.length
+                        return (track.a.pos[0] + (dx * f),track.a.pos[1] + (dy * f))
 
-                train_start = pos_to_v(max(0,p))
-                train_end = pos_to_v(min(track.length,max(0,p + t.l)))
-                buffer_end = pos_to_v(min(track.length,max(0,p + t.l + t.b)))
+                    train_start = pos_to_v(max(0,p))
+                    train_end = pos_to_v(min(track.length,max(0,p + t.l)))
+                    buffer_end = pos_to_v(min(track.length,max(0,p + t.l + t.b)))
 
-                if train_start != train_end:
-                    pygame.draw.aaline(self.screen,t.color,ip(train_start),ip(train_end))
-                #pygame.draw.aaline(self.screen,(75,0,0),ip(train_end),ip(buffer_end))
+                    if train_start != train_end:
+                        pygame.draw.aaline(self.screen,t.color,ip(train_start),ip(train_end))
+                    #pygame.draw.aaline(self.screen,(75,0,0),ip(train_end),ip(buffer_end))
 
         # where the mouse is, equivilent to node id
         pos = pygame.mouse.get_pos()
