@@ -5,8 +5,10 @@
 __version__ = "0.0"
 
 import sys
+import random
 
 from Congestion.world import world,RoundaboutIntersection
+from Congestion.train import Train
 from Congestion.ui import UserInterface
 
 def main(argv):
@@ -47,6 +49,11 @@ def main(argv):
     world.connect_intersections(c,e)
     world.connect_intersections(e,d)
     world.build()
+
+    for track in world.tracks:
+        for rail in track.left_rails + track.right_rails:
+            if random.random() < 0.5:
+                rail.add_train(Train(rail),0)
 
     ui = UserInterface(world,(1024,768))
 

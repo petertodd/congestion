@@ -5,36 +5,50 @@
 
 """Train class and related logic."""
 
-import Trains.Simulator.network
+from Congestion.world import world,Node,Rail
 
 from collections import deque
 import random
 
-class Train:
-    v = 0.0 # current velocity, m/s
-    b = 0.0 # current buffer distance, m
+cdef class Train:
+    cdef public float v # current velocity, m/s
+    cdef public float b # current buffer distance, m
     
     # Current applied force, either braking or acelleration, newtons. Does not
     # include air resistance.
-    f = 0.0 
+    cdef public float f
 
     # intrinsic characteristics
-    l = 15.0 # length, m
-    m = 100.0 # mass, kg
-    max_driving_force = 10000.0 # max driving force, newtons
-    max_braking_force = -50000.0 # max braking force, newtons
-    cd = -0.1 # drag coefficient, unitless, Fd = v^2 * cd
+    cdef public float l # length, m
+    cdef public float m # mass, kg
+    cdef public float max_driving_force # max driving force, newtons
+    cdef public float max_braking_force # max braking force, newtons
+    cdef public float cd # drag coefficient, unitless, Fd = v^2 * cd
 
     # Safety margin for the buffer, multiplier
-    buffer_safety_margin = 1.1
+    cdef public float buffer_safety_margin
 
     # Minimum distance from next train
-    buffer_min_distance = 5 
+    cdef public float buffer_min_distance
 
-    def __init__(self,net,location,**kwargs):
-        self.net = net
+    cdef public occupying
 
-        # add ourselves to the beginning of the track
+    def __init__(self,location,**kwargs):
+        defaults = {'v':0.0,
+                    'b':0.0,
+                    'f':0.0,
+                    'l':15.0,
+                    'm':100.0,
+                    'max_driving_force':10000.0,
+                    'max_braking_force':-50000.0,
+                    'cd':-0.1,
+                    'buffer_safety_margin':1.1,
+                    'buffer_min_distance':5}
+        defaults.update(kwargs) 
+        for k,v in defaults.iteritems():
+            setattr(self,k,v)
+
+        # add ourselves to the beginning of the rail
         self.occupying = deque((location,))
         location.add_train(self,0)
 
@@ -44,10 +58,7 @@ class Train:
         self.max_driving_force = self.max_driving_force * (random.random() + 0.5)
         self.max_braking_force = self.max_driving_force * -5
 
-        #self.color = ((random.random() * 50) + 200,random.random() * 50,random.random() * 50)
-        self.color = (255,0,0)
-
-    def do_extend_buffers(self,dt):
+    cpdef do_extend_buffers(self,float dt):
         # The buffer zone is to provide sufficient space to stop the train via
         # the action of the brakes, at maximum force, at the current velocity.
         # Since dt has elapsed, first calculate the total force on the train,
@@ -70,41 +81,41 @@ class Train:
 
         if self.b > stopping_distance:
             # reducing the stopping distance is too complex, as we would then
-            # have to potentially deoccupy tracks, so just don't do it
+            # have to potentially deoccupy rails, so just don't do it
             pass
         else:
             # Attempt to reserve the extra buffer needed
-            head_track = self.occupying[-1]
-            end_pos = head_track.find_train(self) + self.l
-            if end_pos + stopping_distance >= head_track.length:
-                # We've reached the end of the track, find where to go next
-                if head_track.b.occupying is None:
+            head_rail = self.occupying[-1]
+            end_pos = head_rail.find_train(self) + self.l
+            if end_pos + stopping_distance >= head_rail.length:
+                # We've reached the end of the rail, find where to go next
+                if head_rail.b.occupying is None:
                     # Pick a random exit that is empty
-                    exits = list(head_track.b.exits)
+                    exits = list(head_rail.b.exits)
                     random.shuffle(exits)
-                    for next_track in exits:
-                        if next_track.find_train(self) is None and \
-                           next_track.ok_to_enter() and \
-                           next_track.add_train(self,(end_pos + stopping_distance) - head_track.length):
-                            # Found an empty exit track
-                            head_track.b.occupying = self
-                            self.occupying.append(head_track.b)
-                            self.occupying.append(next_track)
+                    for next_rail in exits:
+                        if next_rail.find_train(self) is None and \
+                           next_rail.ok_to_enter() and \
+                           next_rail.add_train(self,(end_pos + stopping_distance) - head_rail.length):
+                            # Found an empty exit rail
+                            head_rail.b.occupying = self
+                            self.occupying.append(head_rail.b)
+                            self.occupying.append(next_rail)
                             self.b = stopping_distance
                             break
                         else:
-                            #print self,'blocked at',next_track
+                            #print self,'blocked at',next_rail
                             pass
             else:
-                # If the track is not occupied at the new stopping distance
+                # If the rail is not occupied at the new stopping distance
                 # endpoint, we can set the buffer space to the new stopping
                 # distance. Otherwise the buffer stays the same.
-                occupied_by = head_track.occupied(end_pos + stopping_distance)
+                occupied_by = head_rail.occupied(end_pos + stopping_distance)
                 if occupied_by is None or occupied_by is self:
                     self.b = stopping_distance
                 else:
-                    #print 'head track for train',self,'occupied by',head_track.occupied(end_pos + stopping_distance),'at',end_pos,stopping_distance,'self.pos',head_track.find_train(self),'head_track',head_track
-                    #print head_track.trains
+                    #print 'head rail for train',self,'occupied by',head_rail.occupied(end_pos + stopping_distance),'at',end_pos,stopping_distance,'self.pos',head_rail.find_train(self),'head_rail',head_rail
+                    #print head_rail.trains
                     pass
 
         if self.b < stopping_distance:
@@ -114,25 +125,26 @@ class Train:
             # FIXME: add in jerk, shouldn't apply accelleration suddenly
             self.f = self.max_driving_force
 
-    def do_move(self,dt):
+    cpdef do_move(self,float dt):
         dp = self.v * dt
 
         # Since we have moved forward, our buffer has to be decreased by the same amount.
         self.b -= dp
 
         # Update positions
-        left_track = False 
-        for track in self.occupying:
-            if isinstance(track,Trains.Simulator.network.Track):
-                if track.move_train(self,dp):
-                    assert left_track is False
-                    left_track = True
-        if left_track:
-            #print self.occupying
-            assert isinstance(self.occupying[1],Trains.Simulator.network.Node)
+        left_rail = False 
+        print self.occupying
+        for rail in self.occupying:
+            if isinstance(rail,Rail):
+                if rail.move_train(self,dp):
+                    assert left_rail is False
+                    left_rail = True
+        if left_rail:
+            print self.occupying
+            assert isinstance(self.occupying[1],Node)
             assert self.occupying[1].occupying is self
             self.occupying[1].occupying = None
             self.occupying.popleft()
             self.occupying.popleft()
-            #print self.occupying
-            left_track -= 1
+            print self.occupying
+            left_rail -= 1

@@ -5,6 +5,7 @@
 cimport numpy as np
 import numpy as np
 import math
+from collections import deque
 
 world = None
 
@@ -28,7 +29,17 @@ cdef class Network:
             i.build()
 
     def do(self,dt):
-        pass
+        all_trains = []
+        for track in self.tracks:
+            for rail in track.left_rails + track.right_rails:
+                for p,train in rail.trains:
+                    all_trains.append(train)
+        for train in all_trains:
+            print train,train.v
+            train.do_extend_buffers(dt)
+        for train in all_trains:
+            print train,train.v
+            train.do_move(dt)
 
     def add_intersection(self,pos,type):
         """Add an intersection to the network at pos
@@ -60,8 +71,12 @@ cdef class Node:
     # Rails going from this node
     cdef public exits
 
+    # The train occupying this node
+    cdef public occupying
+
     def __init__(self,pos):
         self.exits = set()
+        self.occupying = None
         self.pos = np.array(pos,dtype=np.float64)
 
     def __repr__(self):
@@ -71,7 +86,7 @@ cdef class Rail:
     """A single rail within the train network.
        
        Rails are one way, a to b.
-       """
+    """
 
     # The end nodes 
     cdef Node _a
@@ -80,23 +95,29 @@ cdef class Rail:
             return self._a
         def __set__(self,v):
             self._a = v
-            self.__recalc_length()
+            if self._a is not None:
+                self._a.exits.add(self)
+                self.__recalc_length()
     cdef Node _b
     property b:
         def __get__(self):
             return self._b
         def __set__(self,v):
             self._b = v
-            if self._b is not None:
-                self._b.exits.add(self)
-                self.__recalc_length()
+            self.__recalc_length()
 
     cdef public float length
+
+    # The trains occupying this rail
+    #
+    # Implemented as a deque of [pos,train]'s
+    cdef public trains
 
     def __init__(self,Node a,Node b):
         self.length = -1
         self.a = a
         self.b = b
+        self.trains = deque()
 
     cdef __recalc_length(self):
         if self.b is not None and self.a is not None:
@@ -105,6 +126,51 @@ cdef class Rail:
 
     def __repr__(self):
         return '%s(%r,%r)' % (self.__class__.__name__,self.a,self.b)
+
+    def add_train(self,train,end_pos):
+        if len(self.trains) > 0 and self.trains[0][0] <= end_pos:
+            return False
+        else:
+            self.trains.appendleft([end_pos - train.l - train.b,train])
+            return True
+
+    def move_train(self,train,dp):
+        """Move train by delta-p
+        
+        Returns True if the train has left the track.
+        """
+        for pt in self.trains:
+            if pt[1] is train:
+                pt[0] += dp
+                if pt[0] >= self.length:
+                    assert self.trains[-1][1] is train
+                    self.trains.pop()
+                    return True
+                return False
+        raise Exception('Train not on track')
+
+    def find_train(self,train):
+        """Return position of train on track, or None if train is not on track"""
+        for p,t in self.trains:
+            if t is train:
+                return p
+        return None
+
+    def ok_to_enter(self):
+        return True
+
+    def occupied(self,x):
+        """Return Train occupying track at position x
+
+        Returns None if the track is empty
+        """
+        for pos,train in self.trains:
+            if pos <= x <= train.l + train.b + pos:
+                return train
+            elif pos > x:
+                return None
+        return None
+
 
 cdef class Intersection:
     # Center of the intersection
