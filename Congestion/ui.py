@@ -36,9 +36,11 @@ class UserInterface:
                     c = (255,0,0)
                 pygame.draw.circle(self.screen,c,ip((x + 1,y + 1)),size)
 
-        # Draw the tracks and nodes
         for track in self.network.tracks:
-            pygame.draw.aaline(self.screen,( 50, 50, 60),ip(track.a.pos),ip(track.b.pos))
+            pygame.draw.aaline(self.screen,( 255, 0, 0),ip(track.a.pos),ip(track.b.pos))
+            for rail in track.left_rails + track.right_rails:
+                pygame.draw.aaline(self.screen,( 0, 255, 0),ip(rail.a.pos),ip(rail.b.pos))
+
 
         # draw the trains on the track
         if False:
