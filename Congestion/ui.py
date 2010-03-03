@@ -14,10 +14,10 @@ class UserInterface:
     """The user interface."""
 
     screen = False
-    network = False
+    world = False
 
-    def __init__(self,network,screen_size):
-        self.network = network
+    def __init__(self,world,screen_size):
+        self.world = world
 
         pygame.init()
         self.screen = pygame.display.set_mode(screen_size)
@@ -25,10 +25,10 @@ class UserInterface:
     def do(self,dt):
         self.screen.fill((0,0,0))
 
-        # Display the network
+        # Display the world
 
         if False:
-            for n in self.network.nodes: 
+            for n in self.world.nodes: 
                 x,y = n.pos
                 c = (100,100,100)
                 size = 2
@@ -36,15 +36,21 @@ class UserInterface:
                     c = (255,0,0)
                 pygame.draw.circle(self.screen,c,ip((x + 1,y + 1)),size)
 
-        for track in self.network.tracks:
+        all_rails = []
+        for track in self.world.tracks:
             pygame.draw.aaline(self.screen,( 255, 0, 0),ip(track.a.pos),ip(track.b.pos))
-            for rail in track.left_rails + track.right_rails:
-                pygame.draw.aaline(self.screen,( 0, 255, 0),ip(rail.a.pos),ip(rail.b.pos))
+            all_rails.extend(track.left_rails)
+            all_rails.extend(track.right_rails)
 
+        for intersection in self.world.intersections:
+            all_rails.extend(intersection.rails)
+
+        for rail in all_rails:
+            pygame.draw.aaline(self.screen,( 0, 255, 0),ip(rail.a.pos),ip(rail.b.pos))
 
         # draw the trains on the track
         if False:
-            for track in self.network.tracks:
+            for track in self.world.tracks:
                 # determine slope for later
                 a = track.a.pos
                 b = track.b.pos

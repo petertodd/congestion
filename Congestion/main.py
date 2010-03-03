@@ -6,7 +6,7 @@ __version__ = "0.0"
 
 import sys
 
-from Congestion.network import world
+from Congestion.world import world,RoundaboutIntersection
 from Congestion.ui import UserInterface
 
 def main(argv):
@@ -28,6 +28,25 @@ def main(argv):
             help="set message to display, defaults to %default")
 
     (options, args) = parser.parse_args(argv)
+
+    #a = world.add_intersection((200,100))
+    #a = world.add_intersection((200,100))
+    #b = world.add_intersection((100,200))
+
+    a = world.add_intersection((100,100),RoundaboutIntersection)
+    b = world.add_intersection((200,150),RoundaboutIntersection)
+    c = world.add_intersection((150,200),RoundaboutIntersection)
+
+    d = world.add_intersection((125,300),RoundaboutIntersection)
+    e = world.add_intersection((175,300),RoundaboutIntersection)
+
+    world.connect_intersections(b,c)
+    world.connect_intersections(a,b)
+    world.connect_intersections(c,a)
+    world.connect_intersections(c,d)
+    world.connect_intersections(c,e)
+    world.connect_intersections(e,d)
+    world.build()
 
     ui = UserInterface(world,(1024,768))
 

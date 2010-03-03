@@ -6,24 +6,7 @@ cimport numpy as np
 import numpy as np
 import math
 
-cpdef line_intersection(np.ndarray aa,np.ndarray ab,np.ndarray ba,np.ndarray bb):
-    x1 = aa[0]
-    x2 = ab[0]
-    x3 = ba[0]
-    x4 = bb[0]
-    y1 = aa[1]
-    y2 = ab[1]
-    y3 = ba[1]
-    y4 = bb[1]
-    return ((((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4))/
-             ((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4))),
-            (((x1*y2-y1*x2)*(y3-y4)-(y1-y2)*(x3*y4-y3*x4))/
-             ((x1-x2)*(y3-y4)-(y1-y2)*(x3-x4))))
-
-cpdef line_ang(np.ndarray a,np.ndarray b):
-    v = b - a
-    return math.atan2(v[1],v[0])
-
+world = None
 
 cdef class Network:
     """The graph of the train network."""
@@ -40,25 +23,14 @@ cdef class Network:
         self.intersections = []
         self.tracks = []
 
-        #a = self.add_intersection((200,100))
-        #a = self.add_intersection((200,100))
-        #b = self.add_intersection((100,200))
-
-        a = self.add_intersection((100,100))
-        b = self.add_intersection((200, 75))
-        c = self.add_intersection(( 75,200))
-
-        self.connect_intersections(b,c)
-        self.connect_intersections(a,b)
-        self.connect_intersections(c,a)
-
+    def build(self):
         for i in self.intersections:
             i.build()
 
     def do(self,dt):
         pass
 
-    def add_intersection(self,pos,type=RoundaboutIntersection):
+    def add_intersection(self,pos,type):
         """Add an intersection to the network at pos
 
         Returns the added intersection
@@ -115,7 +87,9 @@ cdef class Rail:
             return self._b
         def __set__(self,v):
             self._b = v
-            self.__recalc_length()
+            if self._b is not None:
+                self._b.exits.add(self)
+                self.__recalc_length()
 
     cdef public float length
 
@@ -132,82 +106,23 @@ cdef class Rail:
     def __repr__(self):
         return '%s(%r,%r)' % (self.__class__.__name__,self.a,self.b)
 
-def track_ang_key(t):
-    return line_ang(t.a.pos,t.b.pos)
-
 cdef class Intersection:
     # Center of the intersection
     cdef public pos
 
     cdef public list tracks
+    cdef public list rails
 
     def __init__(self,pos):
         self.pos = np.array(pos,dtype=np.float64)
         self.tracks = []
+        self.rails = []
 
     def add_track(self,t):
         self.tracks.append(t)
-        self.tracks = sorted(self.tracks,key=track_ang_key)
 
     def __repr__(self):
         return '%s((%r,%r))' % (self.__class__.__name__,self.pos[0],self.pos[1])
-
-cdef class RoundaboutIntersection(Intersection):
-    def build(self):
-        """"""
-        # We've got a list of tracks connecting to this intersection. Each
-        # track has rails assigned to it, however the nodes that define where
-        # the roads end are in an undefined state. What we need to do is figure
-        # out where those nodes should be, and then create the rails of the
-        # roundabout linking those nodes together in a circle.
-
-        # Walk through the pairs of Tracks, ordered by angle
-        print 'walking',self
-        nodes_around = [] # Ordered list of nodes on the circumfrence of the roundabout
-        for t1,t2 in zip(self.tracks,self.tracks[1:] + self.tracks[0:1]):
-            # FIXME: only support two lane Tracks for now
-
-            # The incoming track of t1, connects to the outgoing track of t2.
-            # To find where that intersection actually occures in physical
-            # space, first we have to expand the tracks, separating the two
-            # rails by the lane spacing.
-
-            # Find the vectors of each track
-            t1v = t1.b.pos - t1.a.pos
-            t2v = t2.b.pos - t2.a.pos
-
-            # Using those vectors, find points offset from the beginning by the
-            # lane separation. Cross products do this nicely, essentially we
-            # unitize the vector, turn it into 3d, then take the cross product
-            # of that vector, and a unit vector either pointing +1Z, or -1Z, to
-            # get the offset in the two needed directions.
-            ut1v = np.array(t1v)
-            ut1v /= np.sqrt(np.dot(ut1v,ut1v))
-            ut1v.resize(3)
-            ut2v = np.array(t2v)
-            ut2v /= np.sqrt(np.dot(ut2v,ut2v))
-            ut2v.resize(3)
-
-            off1 = np.cross(ut1v,np.array((0,0,-1))) * (t1.lane_spacing/2)
-            off1.resize(2)
-            off2 = np.cross(ut1v,np.array((0,0,+1))) * (t2.lane_spacing/2)
-            off2.resize(2)
-
-            # The original vectors, and the offsets, can then be taken as line
-            # equations, and the intersection of that then gives us the
-            # location of the node where they connect.
-            i = line_intersection(t1.a.pos + off1,t1.b.pos + off1,
-                                  t2.a.pos + off2,t2.b.pos + off2)
-
-            # Now create a Node for that intersection, and set the endpoints of
-            # the rails involved.
-            i = Node(i)
-            assert 1 == len(t1.right_rails) == len(t2.right_rails) == len(t1.left_rails) == len(t2.left_rails)
-            t1.left_rails[0].b = i
-            t2.right_rails[0].a = i
-
-            nodes_around.append(i)
-            
 
 cdef class TrackData:
     cdef float lane_spacing

@@ -6,7 +6,7 @@ import numpy
 
 setup(
     cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension("Congestion.network", ["Congestion/network.pyx"])],
+    ext_modules = [Extension("Congestion._world", ["Congestion/_world.pyx"])],
     include_dirs = [numpy.get_include(),],
 )
 
