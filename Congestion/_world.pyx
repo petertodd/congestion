@@ -34,11 +34,15 @@ cdef class Network:
             for rail in track.left_rails + track.right_rails:
                 for p,train in rail.trains:
                     all_trains.append(train)
+        for intersection in self.intersections:
+            for rail in intersection.rails:
+                for p,train in rail.trains:
+                    all_trains.append(train)
+
+        print 'network do',self,all_trains
         for train in all_trains:
-            print train,train.v
-            train.do_extend_buffers(dt)
+            train.do_plan(dt)
         for train in all_trains:
-            print train,train.v
             train.do_move(dt)
 
     def add_intersection(self,pos,type):
@@ -108,6 +112,8 @@ cdef class Rail:
 
     cdef public float length
 
+    cdef public float speed_limit
+
     # The trains occupying this rail
     #
     # Implemented as a deque of [pos,train]'s
@@ -118,6 +124,7 @@ cdef class Rail:
         self.a = a
         self.b = b
         self.trains = deque()
+        self.speed_limit = 25.0
 
     cdef __recalc_length(self):
         if self.b is not None and self.a is not None:
@@ -159,18 +166,20 @@ cdef class Rail:
     def ok_to_enter(self):
         return True
 
-    def occupied(self,x):
-        """Return Train occupying track at position x
+    def occupying(self,start,end,filter=None):
+        """Return first Train occupying track between start and end
 
-        Returns None if the track is empty
+        If filter is not None, do not include that Train in the returned set.
+
+        Returns (offset,train) where offset is the trains starting position
+        with respect to pos.  This may be negative.
+
+        Returns None if no such train is found.
         """
         for pos,train in self.trains:
-            if pos <= x <= train.l + train.b + pos:
-                return train
-            elif pos > x:
-                return None
+            if (start <= pos <= end or start <= train.l + train.b + pos <= end) and train is not filter:
+                return (pos - start,train)
         return None
-
 
 cdef class Intersection:
     # Center of the intersection

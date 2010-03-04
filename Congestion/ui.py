@@ -64,10 +64,9 @@ class UserInterface:
                 train_end = pos_to_v(min(rail.length,max(0,p + t.l)))
                 buffer_end = pos_to_v(min(rail.length,max(0,p + t.l + t.b)))
 
-                print train_start,train_end
                 if train_start != train_end:
-                    print 'drawing train',train_start,train_end
                     pygame.draw.aaline(self.screen,(255,0,0),ip(train_start),ip(train_end))
+                pygame.draw.aaline(self.screen,(0,0,255),ip(train_end),ip(buffer_end))
 
         # where the mouse is, equivilent to node id
         pos = pygame.mouse.get_pos()

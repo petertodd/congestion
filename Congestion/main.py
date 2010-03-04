@@ -50,14 +50,20 @@ def main(argv):
     world.connect_intersections(e,d)
     world.build()
 
-    for track in world.tracks:
-        for rail in track.left_rails + track.right_rails:
-            if random.random() < 0.5:
-                rail.add_train(Train(rail),0)
+    if True:
+        all_rails = []
+        for track in world.tracks:
+            for rail in track.left_rails + track.right_rails:
+                all_rails.append(rail)
+        for rail in all_rails[::3]:
+            rail.add_train(Train(rail),0)
+    else:
+        world.tracks[0].left_rails[0].add_train(Train(world.tracks[0].left_rails[0]),0)
+        world.tracks[1].left_rails[0].add_train(Train(world.tracks[1].left_rails[0]),0)
 
     ui = UserInterface(world,(1024,768))
 
-    dt = 0.02
+    dt = 0.1
     import time
     last = time.time()
     while True:
