@@ -39,7 +39,6 @@ cdef class Network:
                 for p,train in rail.trains:
                     all_trains.append(train)
 
-        print 'network do',self,all_trains
         for train in all_trains:
             train.do_plan(dt)
         for train in all_trains:

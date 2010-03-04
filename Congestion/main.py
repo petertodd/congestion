@@ -11,6 +11,9 @@ from Congestion.world import world,RoundaboutIntersection
 from Congestion.train import Train
 from Congestion.ui import UserInterface
 
+import numpy as np
+from scipy.spatial import distance_matrix,KDTree
+
 def main(argv):
     """
     Script entry point.
@@ -31,23 +34,58 @@ def main(argv):
 
     (options, args) = parser.parse_args(argv)
 
-    #a = world.add_intersection((200,100))
-    #a = world.add_intersection((200,100))
-    #b = world.add_intersection((100,200))
+    width = 1920
+    height = 1080
+    border = 30
+    min_dist = 25
+    num_nodes = 275
 
-    a = world.add_intersection((100,100),RoundaboutIntersection)
-    b = world.add_intersection((200,150),RoundaboutIntersection)
-    c = world.add_intersection((150,200),RoundaboutIntersection)
+    # Build up n random nodes, such that no node is closer to any other node than min_dist
+    #   
+    # Naive algorithm, add nodes one at a time, and test 
+    nodes = []
+    while len(nodes) < num_nodes:
+        nodes.append((((width - 2*border) * random.random()) + border,
+                      ((height - 2*border) * random.random()) + border))
+        dists = distance_matrix(nodes,nodes)
 
-    d = world.add_intersection((125,300),RoundaboutIntersection)
-    e = world.add_intersection((175,300),RoundaboutIntersection)
+        # Remove the 0's down the diag
+        dists += np.eye(len(nodes),len(nodes)) * min_dist
 
-    world.connect_intersections(b,c)
-    world.connect_intersections(a,b)
-    world.connect_intersections(c,a)
-    world.connect_intersections(c,d)
-    world.connect_intersections(c,e)
-    world.connect_intersections(e,d)
+        if dists.min() < min_dist:
+            nodes.pop()
+
+    # Now generate a graph by going through each node, and finding the closest
+    # nodes to it.
+    kdt = KDTree(nodes)
+    conns = {}
+    for n in nodes:
+        conns[n] = set()
+    for n in nodes:
+        dists,idxs = kdt.query(n,k=random.randrange(4,5))
+
+        dists = dists[1:num_nodes] # throw away the 'match' to node n
+        idxs = idxs[1:num_nodes]
+
+        for d,i in zip(dists,idxs):
+            conns[n].add(nodes[i])
+            conns[nodes[i]].add(n)
+    
+
+    inters = {}
+    for n in nodes:
+        i = world.add_intersection(n,RoundaboutIntersection)
+        inters[n] = i
+
+    # Turn the connection list into roads. Each connection creates a single
+    # road, from k to v
+    pairs_done = {}
+    for k,v in conns.iteritems():
+        for r in v:
+            if (k,r) not in pairs_done and (r,k) not in pairs_done:
+                pairs_done[(k,r)] = True
+                world.connect_intersections(inters[k],inters[r])
+
     world.build()
 
     if True:
@@ -55,13 +93,13 @@ def main(argv):
         for track in world.tracks:
             for rail in track.left_rails + track.right_rails:
                 all_rails.append(rail)
-        for rail in all_rails[::3]:
+        for rail in all_rails[::1]:
             rail.add_train(Train(rail),0)
     else:
         world.tracks[0].left_rails[0].add_train(Train(world.tracks[0].left_rails[0]),0)
         world.tracks[1].left_rails[0].add_train(Train(world.tracks[1].left_rails[0]),0)
 
-    ui = UserInterface(world,(1024,768))
+    ui = UserInterface(world,(width,height))
 
     dt = 0.1
     import time
