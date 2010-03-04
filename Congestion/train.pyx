@@ -105,20 +105,23 @@ cdef class Train:
                 trial_end_pos = cur_end_pos + db
             else:
                 find_next_rail = True
-                trial_end_pos = head_rail.length + 1
+                trial_end_pos = head_rail.length + 0.00001
 
             # Allocate the part of db that extends up-to and including the end
             # of the head rail.
-            r = head_rail.occupying(cur_end_pos + 0.0001,trial_end_pos)
+            r = head_rail.occupying(cur_end_pos,trial_end_pos,self)
             if r is not None:
                 p,t = r
                 # We can extend the buffer up to where the obstructing train starts.
+                assert p + 1 > cur_end_pos
                 self.b += p - cur_end_pos
+                assert self.b > 0
                 db -= p - cur_end_pos
                 break
             else:
                 # Success!
                 self.b += trial_end_pos - cur_end_pos
+                assert self.b > 0
                 db -= trial_end_pos - cur_end_pos
                
                 # Have we reached the end of the rail?
@@ -151,8 +154,9 @@ cdef class Train:
 
         if db > 0.01:
             # If there is any db left, we ran into an obstacle, so start applying the brakes
-            self.a += self.max_braking_jerk * dt
-            self.a = max(self.max_braking_accelleration,self.a)
+            #self.a += self.max_braking_jerk * dt
+            #self.a = max(self.max_braking_accelleration,self.a)
+            self.a = self.max_braking_accelleration
         else:
             # Otherwise keep accellerating, up to the speed limit
             self.a += self.max_driving_jerk * dt
@@ -161,7 +165,10 @@ cdef class Train:
 
     cpdef do_move(self,float dt):
         dp = self.v * dt
+        dp = min(dp,self.b)
         self.b -= dp
+        assert self.b + 1 > self.buffer_min_distance
+        self.b = max(self.b,self.buffer_min_distance)
 
         # Update positions
         rails_left = 0

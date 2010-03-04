@@ -166,19 +166,25 @@ cdef class Rail:
     def ok_to_enter(self):
         return True
 
-    def occupying(self,start,end,filter=None):
+    def occupying(self,start,end,filter):
         """Return first Train occupying track between start and end
 
-        If filter is not None, do not include that Train in the returned set.
-
-        Returns (offset,train) where offset is the trains starting position
-        with respect to pos.  This may be negative.
+        Returns (pos,train) where pos is the trains starting position. This may
+        be negative.
 
         Returns None if no such train is found.
         """
         for pos,train in self.trains:
-            if (start <= pos <= end or start <= train.l + train.b + pos <= end) and train is not filter:
-                return (pos - start,train)
+            # Don't filter hits for the train proper, we're probably running up
+            # on ourselves from behind
+            if pos <= start <= pos + train.l or pos <= end <= pos + train.l:
+                return (pos,train)
+            # Filtering hits for the buffer region is ok however, as that's
+            # probably just an artifact
+            elif train is not filter and \
+                    (pos <= start <= pos + train.l + train.b or \
+                     pos <= end <= pos + train.l + train.b):
+                return (pos,train)
         return None
 
 cdef class Intersection:
