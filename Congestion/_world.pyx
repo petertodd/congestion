@@ -83,7 +83,7 @@ cdef class Node:
         self.pos = np.array(pos,dtype=np.float64)
 
     def __repr__(self):
-        return '%s((%r,%r))' % (self.__class__.__name__,self.pos[0],self.pos[1])
+        return '%s((%.1f,%.1f))' % (self.__class__.__name__,self.pos[0],self.pos[1])
 
 cdef class Rail:
     """A single rail within the train network.
@@ -202,7 +202,7 @@ cdef class Intersection:
         self.tracks.append(t)
 
     def __repr__(self):
-        return '%s((%r,%r))' % (self.__class__.__name__,self.pos[0],self.pos[1])
+        return '%s((%.1f,%.1f))' % (self.__class__.__name__,self.pos[0],self.pos[1])
 
 cdef class TrackData:
     cdef float lane_spacing
