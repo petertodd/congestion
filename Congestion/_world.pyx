@@ -235,7 +235,7 @@ cdef class Track:
 
     def __init__(self,
             Intersection a not None,Intersection b not None,
-            float lane_spacing = 10.0,
+            float lane_spacing = 2.0,
             int num_lanes = 2,
             right_rails = None, left_rails = None,
             TrackData _data = None):

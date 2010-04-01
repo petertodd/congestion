@@ -38,7 +38,7 @@ def main(argv):
     height = 1080
     border = 30
     min_dist = 25
-    num_nodes = 275
+    num_nodes = 500
 
     # Build up n random nodes, such that no node is closer to any other node than min_dist
     #   
@@ -62,7 +62,7 @@ def main(argv):
     for n in nodes:
         conns[n] = set()
     for n in nodes:
-        dists,idxs = kdt.query(n,k=random.randrange(4,5))
+        dists,idxs = kdt.query(n,k=random.randrange(3,5))
 
         dists = dists[1:num_nodes] # throw away the 'match' to node n
         idxs = idxs[1:num_nodes]
