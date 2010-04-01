@@ -37,7 +37,7 @@ class RoundaboutIntersection(Intersection):
         # roundabout linking those nodes together in a circle.
 
         # Order Tracks by angle
-        self.track = sorted(self.tracks,key=lambda t: line_ang(t.a.pos - self.pos,t.b.pos - self.pos))
+        self.tracks = list(reversed(sorted(self.tracks,key=lambda t: line_ang(t.a.pos - self.pos,t.b.pos - self.pos))))
 
         # Walk through the pairs of Tracks, ordered by angle
         nodes_around = [] # Ordered list of nodes on the circumfrence of the roundabout
