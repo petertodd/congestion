@@ -39,7 +39,7 @@ cdef class Train:
     def __init__(self,location,**kwargs):
         defaults = {'v':0.0,
                     'a':0.0,
-                    'l':2.5,
+                    'l':4.0,
                     'max_driving_accelleration':1.0,
                     'max_driving_jerk':10.0,
                     'max_braking_accelleration':-5.0,

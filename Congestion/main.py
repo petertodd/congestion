@@ -9,7 +9,7 @@ import random
 
 from Congestion.world import world,RoundaboutIntersection
 from Congestion.train import Train
-from Congestion.ui import UserInterface
+from Congestion.ui import run_ui
 
 import numpy as np
 from scipy.spatial import distance_matrix,KDTree
@@ -38,7 +38,7 @@ def main(argv):
     height = 1080
     border = 30
     min_dist = 25
-    num_nodes = 500
+    num_nodes = 100
 
     # Build up n random nodes, such that no node is closer to any other node than min_dist
     #   
@@ -99,17 +99,4 @@ def main(argv):
         world.tracks[0].left_rails[0].add_train(Train(world.tracks[0].left_rails[0]),0)
         world.tracks[1].left_rails[0].add_train(Train(world.tracks[1].left_rails[0]),0)
 
-    ui = UserInterface(world,(width,height))
-
-    dt = 0.1
-    import time
-    last = time.time()
-    while True:
-        world.do(dt)
-        ui.do(dt)
-        
-        now = time.time()
-        sleep_for = dt-(now-last)
-        if sleep_for > 0:
-            time.sleep(sleep_for)
-        last = now
+    run_ui(world,0.05)
