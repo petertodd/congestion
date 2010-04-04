@@ -28,8 +28,9 @@ class UserInterface(gtk.DrawingArea):
         self.world = world
 
         self.last = time.time()
+        self.fps = 25
 
-        gobject.timeout_add(dt * 1000, self.do_sim)
+        gobject.timeout_add(1000/self.fps, self.do_sim)
 
     def expose(self, widget, event):
         context = widget.window.cairo_create()
@@ -43,7 +44,7 @@ class UserInterface(gtk.DrawingArea):
 
     def do_sim(self):
         now = time.time()
-        print 'do_sim',now - self.last
+        self.fps = (1/(now - self.last))
         self.world.do((now - self.last) / 2)
         self.redraw_canvas()
         self.last = now
@@ -63,45 +64,27 @@ class UserInterface(gtk.DrawingArea):
         context.set_source_rgb(1.0, 1.0 , 1.0 )
         context.rectangle(0, 0, rect.width, rect.height)
         context.fill()
-        context.set_line_width(1.00)
-        print context
-
-        def line(a,b,color,width=1.5):
-            context.save()
-            context.set_line_width(width * context.get_line_width())
-            context.set_source_rgb(*color)
-            context.move_to(a[0],a[1])
-            context.line_to(b[0],b[1])
-            context.stroke()
-            context.restore()
 
         # Display the world
 
-        if False:
-            for n in self.world.nodes: 
-                x,y = n.pos
-                c = (100,100,100)
-                size = 2
-                if n.occupying is not None:
-                    c = (255,0,0)
-                #pygame.draw.circle(self.screen,c,ip((x + 1,y + 1)),size)
-
         all_rails = []
         for track in self.world.tracks:
-            #line(track.a.pos,track.b.pos,(0.3,0.3,0.4))
-            #pygame.draw.aaline(self.screen,(30,30,40),ip(track.a.pos),ip(track.b.pos))
             all_rails.extend(track.left_rails)
             all_rails.extend(track.right_rails)
 
         for intersection in self.world.intersections:
             all_rails.extend(intersection.rails)
 
+        context.set_line_width(1.5)
+        context.set_source_rgb(0.5,0.5,0.5)
         for rail in all_rails:
-            line(rail.a.pos,rail.b.pos,(0.50,0.50,0.50))
-            pass
-            #pygame.draw.aaline(self.screen,(50,50,60),ip(rail.a.pos),ip(rail.b.pos))
+            context.move_to(rail.a.pos[0],rail.a.pos[1])
+            context.line_to(rail.b.pos[0],rail.b.pos[1])
+        context.stroke()
 
         # draw the trains on the track
+        context.set_line_width(2.5)
+        context.set_source_rgb(0.0,0.0,0.0)
         for rail in all_rails: 
             # determine slope for later
             a = rail.a.pos
@@ -115,24 +98,15 @@ class UserInterface(gtk.DrawingArea):
 
                 train_start = pos_to_v(max(0,p))
                 train_end = pos_to_v(min(rail.length,max(0,p + t.l)))
-                buffer_end = pos_to_v(min(rail.length,max(0,p + t.l + t.b)))
+                #buffer_end = pos_to_v(min(rail.length,max(0,p + t.l + t.b)))
 
                 if train_start != train_end:
-                    line(train_start,train_end,(0.0,0.0,0.0),width=2.0)
-                    #pygame.draw.aaline(self.screen,(255,0,0),ip(train_start),ip(train_end))
-                #line(train_end,buffer_end,(0.0,0.0,1.0))
-                #pygame.draw.aaline(self.screen,(0,0,255),ip(train_end),ip(buffer_end))
+                    context.move_to(train_start[0],train_start[1])
+                    context.line_to(train_end[0],train_end[1])
+        context.stroke()
 
-        # where the mouse is, equivilent to node id
-        #pos = pygame.mouse.get_pos()
-        #pygame.event.clear()
-
-        #font = pygame.font.Font(None, 12)
-        #text = font.render(str(pos), 1, (10, 10, 10))
-        #self.screen.blit(text,(1,1,0,0))
-        
-        #pygame.display.flip()
-
+        context.move_to(10,10)
+        context.show_text("%.1ffps" % self.fps)
 
 def run_ui(world,dt):
     window = gtk.Window()
