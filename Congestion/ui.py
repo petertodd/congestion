@@ -42,9 +42,11 @@ class UserInterface(gtk.DrawingArea):
         self.draw(context)
 
     def do_sim(self):
-        print 'do_sim'
-        self.world.do(self.dt)
+        now = time.time()
+        print 'do_sim',now - self.last
+        self.world.do((now - self.last) / 2)
         self.redraw_canvas()
+        self.last = now
 
         return True
 
@@ -57,18 +59,14 @@ class UserInterface(gtk.DrawingArea):
 
     def draw(self, context):
         rect = self.get_allocation()
-        now = time.time()
-        print 'draw',rect,now - self.last
-        self.last = now
 
-        # Fill the background with white
-        context.set_source_rgb(0.0, 0.0, 0.0)
+        context.set_source_rgb(1.0, 1.0 , 1.0 )
         context.rectangle(0, 0, rect.width, rect.height)
         context.fill()
-        context.set_line_width(1.50)
+        context.set_line_width(1.00)
         print context
 
-        def line(a,b,color,width=1.0):
+        def line(a,b,color,width=1.5):
             context.save()
             context.set_line_width(width * context.get_line_width())
             context.set_source_rgb(*color)
@@ -99,7 +97,7 @@ class UserInterface(gtk.DrawingArea):
             all_rails.extend(intersection.rails)
 
         for rail in all_rails:
-            line(rail.a.pos,rail.b.pos,(0.2,0.2,0.3))
+            line(rail.a.pos,rail.b.pos,(0.50,0.50,0.50))
             pass
             #pygame.draw.aaline(self.screen,(50,50,60),ip(rail.a.pos),ip(rail.b.pos))
 
@@ -120,7 +118,7 @@ class UserInterface(gtk.DrawingArea):
                 buffer_end = pos_to_v(min(rail.length,max(0,p + t.l + t.b)))
 
                 if train_start != train_end:
-                    line(train_start,train_end,(1.0,0.0,0.0),width=2.0)
+                    line(train_start,train_end,(0.0,0.0,0.0),width=2.0)
                     #pygame.draw.aaline(self.screen,(255,0,0),ip(train_start),ip(train_end))
                 #line(train_end,buffer_end,(0.0,0.0,1.0))
                 #pygame.draw.aaline(self.screen,(0,0,255),ip(train_end),ip(buffer_end))
