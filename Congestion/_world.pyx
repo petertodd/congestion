@@ -29,15 +29,15 @@ cdef class Network:
             i.build()
 
     def do(self,dt):
-        all_trains = []
+        all_trains = set()
         for track in self.tracks:
             for rail in track.left_rails + track.right_rails:
                 for p,train in rail.trains:
-                    all_trains.append(train)
+                    all_trains.add(train)
         for intersection in self.intersections:
             for rail in intersection.rails:
                 for p,train in rail.trains:
-                    all_trains.append(train)
+                    all_trains.add(train)
 
         for train in all_trains:
             train.do_plan(dt)
