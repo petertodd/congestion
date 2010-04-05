@@ -87,7 +87,6 @@ cdef class Train:
         new_v = min(speed_limit,(self.v + (dt * (self.a + (dt * self.max_driving_jerk)))))
         new_bd = self.braking_distance(new_v) + new_v*dt
         db = new_bd - self.b
-        # 
         db = max(0,db)
 
         # Is there an obstacle in our path, were the buffer zone to be extended by db?
@@ -167,8 +166,10 @@ cdef class Train:
         dp = self.v * dt
         dp = min(dp,self.b)
         self.b -= dp
-        assert self.b + 1 > self.buffer_min_distance
-        self.b = max(self.b,self.buffer_min_distance)
+        assert self.b > 0
+        if self.b < self.buffer_min_distance:
+            # If we've overrun our buffer, simply do a hard stop.
+            self.v = 0
 
         # Update positions
         rails_left = 0
