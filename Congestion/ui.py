@@ -45,7 +45,7 @@ class UserInterface(gtk.DrawingArea):
     def do_sim(self):
         now = time.time()
         self.fps = (1/(now - self.last))
-        self.world.do((now - self.last) / 2)
+        self.world.do(now - self.last)
         self.redraw_canvas()
         self.last = now
 

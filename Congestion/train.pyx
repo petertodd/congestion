@@ -40,9 +40,9 @@ cdef class Train:
         defaults = {'v':0.0,
                     'a':0.0,
                     'l':3.0,
-                    'max_driving_accelleration':1.0,
-                    'max_driving_jerk':10.0,
-                    'max_braking_accelleration':-5.0,
+                    'max_driving_accelleration':10.0,
+                    'max_driving_jerk':20.0,
+                    'max_braking_accelleration':-10.0,
                     'max_braking_jerk':-5.0,
                     'buffer_min_distance':5}
         defaults.update(kwargs) 

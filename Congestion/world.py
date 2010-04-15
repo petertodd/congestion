@@ -39,6 +39,10 @@ class RoundaboutIntersection(Intersection):
         # Order Tracks by angle
         self.tracks = list(reversed(sorted(self.tracks,key=lambda t: line_ang(t.a.pos - self.pos,t.b.pos - self.pos))))
 
+        
+        if len(self.tracks) == 1:
+            print len(self.tracks)
+
         # Walk through the pairs of Tracks, ordered by angle
         nodes_around = [] # Ordered list of nodes on the circumfrence of the roundabout
         for t1,t2 in zip(self.tracks,self.tracks[1:] + self.tracks[0:1]):
@@ -75,6 +79,9 @@ class RoundaboutIntersection(Intersection):
             # location of the node where they connect.
             i = line_intersection(t1.a.pos + off1,t1.b.pos + off1,
                                   t2.a.pos + off2,t2.b.pos + off2)
+
+            if len(self.tracks) == 1:
+                print i 
 
             # Now create a Node for that intersection, and set the endpoints of
             # the rails involved.

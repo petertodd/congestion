@@ -40,61 +40,41 @@ def main(argv):
     min_dist = 10
     num_nodes = 500
 
-    # Build up n random nodes, such that no node is closer to any other node than min_dist
-    #   
-    # Naive algorithm, add nodes one at a time, and test 
-    nodes = []
-    while len(nodes) < num_nodes:
-        nodes.append((((width - 2*border) * random.random()) + border,
-                      ((height - 2*border) * random.random()) + border))
-        dists = distance_matrix(nodes,nodes)
-
-        # Remove the 0's down the diag
-        dists += np.eye(len(nodes),len(nodes)) * min_dist
-
-        if dists.min() < min_dist:
-            nodes.pop()
-
-    # Now generate a graph by going through each node, and finding the closest
-    # nodes to it.
-    kdt = KDTree(nodes)
-    conns = {}
-    for n in nodes:
-        conns[n] = set()
-    for n in nodes:
-        dists,idxs = kdt.query(n,k=random.randrange(3,4))
-
-        dists = dists[1:num_nodes] # throw away the 'match' to node n
-        idxs = idxs[1:num_nodes]
-
-        for d,i in zip(dists,idxs):
-            conns[n].add(nodes[i])
-            conns[nodes[i]].add(n)
-    
-
+    # Load road list
     inters = {}
-    for n in nodes:
-        i = world.add_intersection(n,RoundaboutIntersection)
-        inters[n] = i
+    conns = {}
+    fpath = open('path_gen.paths','r')
+    for l in fpath.readlines():
+        a1,a2,b1,b2 = [float(i) * 1000 for i in l.split(' ')]
 
-    # Turn the connection list into roads. Each connection creates a single
-    # road, from k to v
-    pairs_done = {}
-    for k,v in conns.iteritems():
-        for r in v:
-            if (k,r) not in pairs_done and (r,k) not in pairs_done:
-                pairs_done[(k,r)] = True
-                world.connect_intersections(inters[k],inters[r])
+        a = None
+        if (a1,a2) not in inters:
+            inters[(a1,a2)] = a = world.add_intersection((a1,a2),RoundaboutIntersection)
+        else:
+            a = inters[(a1,a2)]
+
+        b = None
+        if (b1,b2) not in inters:
+            inters[(b1,b2)] = b = world.add_intersection((b1,b2),RoundaboutIntersection)
+        else:
+            b = inters[(b1,b2)]
+
+        if (a,b) not in conns and (b,a) not in conns:
+            conns[(a,b)] = True
+            world.connect_intersections(a,b)
 
     world.build()
 
+    dens = 0
     if True:
         all_rails = []
         for track in world.tracks:
             for rail in track.left_rails + track.right_rails:
                 all_rails.append(rail)
         for rail in all_rails[::1]:
-            rail.add_train(Train(rail),0)
+            dens += 1
+            if 0 == dens % 20:
+                rail.add_train(Train(rail),0)
     else:
         world.tracks[0].left_rails[0].add_train(Train(world.tracks[0].left_rails[0]),0)
         world.tracks[1].left_rails[0].add_train(Train(world.tracks[1].left_rails[0]),0)
