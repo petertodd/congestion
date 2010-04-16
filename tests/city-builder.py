@@ -11,6 +11,7 @@ import time
 
 from pylab import *
 from scipy.spatial import distance_matrix
+from scipy.spatial.distance import pdist,squareform
 
 world_shape = (1920,1080)
 
@@ -30,7 +31,7 @@ class UserInterface(gtk.DrawingArea):
         self.last = time.time()
         self.draw_interval = 0
 
-        gobject.timeout_add(self.dt * 1000, self.do_sim)
+        gobject.timeout_add(int(self.dt * 1000), self.do_sim)
 
     def expose(self, widget, event):
         context = widget.window.cairo_create()
@@ -45,7 +46,6 @@ class UserInterface(gtk.DrawingArea):
     def do_sim(self):
         now = time.time()
         self.fps = (1/(now - self.last))
-        print self.fps
         self.world.do((now - self.last) / 2)
         self.redraw_canvas()
         self.last = now
@@ -72,6 +72,14 @@ class UserInterface(gtk.DrawingArea):
             context.arc(p[0],p[1],m,0,2*pi)
             context.fill()
 
+        for (a,b),m in self.world.r.iteritems():
+            a = self.world.p[a]
+            b = self.world.p[b]
+            context.set_line_width(1.0)
+            context.move_to(a[0],a[1])
+            context.line_to(b[0],b[1])
+            context.stroke()
+
 class World:
     def __init__(self):
         # Point locations
@@ -89,7 +97,7 @@ class World:
         self.G = 100 
 
         # repulsion constant
-        self.R = 1000
+        self.R = 300
 
     def do(self,dt):
         # Add points randomly, probability based on proximity to mass, with a
@@ -103,14 +111,62 @@ class World:
             g = sum(self.G*(self.m/d**2.7))
             r = sum(self.R*(self.m/d**4))
 
-            print g,r
             if random() < (g - r):
-                print 'new at',p,g,r
                 self.p.append(p)
                 self.m.append(1)
                 n += 1
 
+        def mkroad(a,b):
+            # create road between a and b
+            #
+            # in doing so, create intermediate nodes spaced l apart
+            l = 10.0
+
+            ap = self.p[a]
+            bp = self.p[b]
+
+            d_ap_bp = array(bp) - ap
+            d = sqrt(dot(d_ap_bp,d_ap_bp))
+            n = int(d / l) + 1
+
+            path = array([linspace(ap[0],bp[0],num=n),
+                          linspace(ap[1],bp[1],num=n)]).transpose()
+
+            # create new nodes for the intermediate points on the path
+            old_p_end = len(self.p)
+            self.p.extend(path[1:-1])
+            self.m.extend((1,) * (len(path) - 2))
+
+            last = a
+            for i in range(old_p_end,len(self.p)) + [b,]:
+                self.r[tuple(sorted((last,i)))] = 0
+
         # Generate traffic
+        for j in range(25):
+            dists = squareform(pdist(self.p))
+
+            pos = randint(len(self.p))
+            dest = randint(len(self.p))
+            while pos != dest:
+                # pick the closest node, that gets us closer to our destination
+                dist_to_goal = dists[pos,dest]
+                closest_to_us = argsort(dists[pos])
+                for i in closest_to_us:
+                    if dists[i,dest] < dist_to_goal:
+                        new_pos = i
+                        break
+                assert pos != new_pos
+                if not tuple(sorted((pos,new_pos))) in self.r:
+                    mkroad(pos,new_pos)
+                self.r[tuple(sorted((pos,new_pos)))] += 1
+
+                pos = new_pos
+
+
+
+
+
+
 
 def run_ui(dt):
     window = gtk.Window()
