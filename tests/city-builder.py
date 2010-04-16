@@ -88,17 +88,22 @@ class UserInterface(gtk.DrawingArea):
 class World:
     def __init__(self):
         # Point locations
-        self.p = [array(world_shape) / 2]
+        self.p = []
 
         # Point masses
-        self.m = [1]
+        self.m = []
+
+        # Create some initial points
+        for i in range(1):
+            self.p.append(random(2) * world_shape)
+            self.m.append(1)
 
         # Roads connect points, specifically act as a distance multiplier to
         # reduce effective distance
         self.r = {}
 
         # gravitational constant
-        self.G = 100 
+        self.G = 50 
 
         # repulsion constant
         self.R = 300
