@@ -141,6 +141,12 @@ class World:
                 path = array([linspace(ap[0],bp[0],num=n),
                               linspace(ap[1],bp[1],num=n)]).transpose()
 
+                # created linear path, now jiggle middle bits
+                if False:
+                    for i in range(1,len(path) - 1): 
+                        path[i] += (np.random.random(2) - (0.5,0.5)) * (bp - ap) * (1.0/n) 
+
+
                 # create new nodes for the intermediate points on the path
                 old_p_end = len(self.p)
                 self.p.extend(path[1:-1])
