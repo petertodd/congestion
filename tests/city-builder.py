@@ -29,7 +29,6 @@ class UserInterface(gtk.DrawingArea):
         self.world = world
 
         self.last = time.time()
-        self.draw_interval = 0
 
         gobject.timeout_add(int(self.dt * 1000), self.do_sim)
 
@@ -42,6 +41,19 @@ class UserInterface(gtk.DrawingArea):
         context.clip()
 
         self.draw(context)
+
+        if True:
+            now = time.time()
+
+            self.draw_interval = 0
+            surf = cairo.PDFSurface('city_builder_%d.pdf' % now,world_shape[0],world_shape[1])
+            ctx = cairo.Context(surf)
+            ctx.rectangle(0,0,world_shape[0],world_shape[1])
+            ctx.clip()
+            ctx.set_line_cap(cairo.LINE_CAP_ROUND)
+            self.draw(ctx)
+
+            surf.write_to_png(open('city_builder_%d.png' % now,'w')) 
 
     def do_sim(self):
         now = time.time()
@@ -94,9 +106,11 @@ class World:
         self.m = []
 
         # Create some initial points
-        for i in range(1):
-            self.p.append(random(2) * world_shape)
-            self.m.append(1)
+        #for i in range(1):
+        #    self.p.append(random(2) * world_shape)
+        #    self.m.append(1)
+        self.p = [(0,0),(world_shape[0] / 3,world_shape[1] * 0.75),(world_shape[0],world_shape[1] / 2)]
+        self.m = [1,1,1]
 
         # Roads connect points, specifically act as a distance multiplier to
         # reduce effective distance
@@ -128,7 +142,7 @@ class World:
                     self.m.append(1)
                     n += 1
             print 'created',n,'new nodes'
-            yield
+            #yield
 
             def mkroad(a,b):
                 # create road between a and b
@@ -177,7 +191,7 @@ class World:
                     if new_road_added:
                         dists = squareform(pdist(self.p))
                         new_road_added = False
-                        yield
+                        #yield
                     # pick the closest node, that gets us closer to our destination
                     dist_to_goal = dists[pos,dest]
                     closest_to_us = argsort(dists[pos])
